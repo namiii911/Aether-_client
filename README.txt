@@ -1,53 +1,46 @@
 AETHER CLIENT — PRIVATE APPROVAL PORTAL
 ========================================
 
-IMPORTANT
-This is a front-end portal plus Supabase database/storage setup. A static website alone cannot securely approve people or protect a downloadable file. This package uses Supabase Auth, Postgres Row Level Security, and a PRIVATE Storage bucket. Do not publish the client ZIP in the public website folder/repository.
+WHAT IS IN THIS REPOSITORY
+- index.html / styles.css: responsive AETHER CLIENT member portal.
+- app.js: Supabase registration, sign-in, approval status, owner console and signed-download flow.
+- config.js: browser-safe Supabase URL and publishable key.
+- supabase-setup.sql: database, row-level security, private Storage bucket and owner bootstrap.
+- AETHER_CLIENT_Private_Approval_Website (2).zip: an earlier website package.
 
-WHAT IT DOES
-- Visitors create an account with email/password.
-- New accounts are pending by default.
-- Only the owner/admin can approve or revoke accounts.
-- Approved users receive a short-lived signed download URL from a private Storage bucket.
-- Owner dashboard lists accounts and provides Approve/Revoke controls.
+ACCESS FLOW
+1. A visitor registers with email and password.
+2. Supabase creates a profile with status=pending.
+3. The owner signs in and approves or revokes accounts in the Owner Console.
+4. Only approved accounts and the owner can request a short-lived signed download URL.
+5. The client ZIP must live in the private Supabase Storage bucket, never in the public website repository.
 
-YOU NEED
-- A GitHub account (or another static hosting provider).
-- A Supabase account/project.
-- The AETHER CLIENT source ZIP.
-- Your owner email address.
+SUPABASE PROJECT CONFIGURATION
+The current config.js points to project qvpjbpjwnmefidfwpafe and uses its publishable key. Publishable keys are intended for browser use; never put a Supabase secret/service_role key in config.js.
 
-CURRENT STATUS
-The GitHub Pages frontend is published. The Supabase owner bootstrap, private Storage bucket, client ZIP upload, and end-to-end test still need to be completed before members can use downloads.
+OWNER
+Current owner email: gjha75363@gmail.com.
+The owner profile was bootstrapped in the connected Supabase project. If setting up a fresh project, register this email first, then run the owner UPDATE at the bottom of supabase-setup.sql.
 
-SETUP
-1. Create a Supabase project.
-2. In Supabase, open SQL Editor and run `supabase-setup.sql`.
-3. In Storage, create a bucket named `aether-downloads` and make sure it is PRIVATE (not public).
-4. Upload `AETHER_CLIENT_1.21.11_v1.5_Practice_Source.zip` to that bucket with exactly that filename.
-   Upload the v1.5 source ZIP supplied separately. It is source code, not a compiled Minecraft mod JAR.
-5. Open Project Settings > API. Copy the Project URL and publishable/anon key.
-6. Edit `config.js`:
-   - supabaseUrl = your Project URL
-   - supabaseAnonKey = your publishable/anon key
-   - ownerEmail = your email (informational; owner permissions are set in SQL)
-   Never use or expose a service_role/secret key in the website.
-7. Upload the website files (index.html, styles.css, app.js, config.js) to a GitHub repository.
-   Do NOT upload the client ZIP to the public GitHub repository. Keep it in the private Supabase bucket only.
-8. Enable GitHub Pages: repository Settings > Pages > Deploy from a branch > main > /(root) > Save.
-9. Open your published site and sign up using your owner email.
-10. After you register on the site using `gjha4456@gmail.com`, run the owner bootstrap UPDATE statement at the bottom of `supabase-setup.sql` again. It grants admin access only to that registered account.
-11. Sign in again on the site. You should see the Owner Console.
-12. Send the website URL to people. They can request accounts; you approve or revoke them from the owner console.
+CLIENT DOWNLOAD FILE — STILL REQUIRED
+The website expects this exact object in the PRIVATE bucket aether-downloads:
+AETHER_CLIENT_1.21.11_v1.5_Practice_Source.zip
 
-SECURITY NOTES
-- Supabase anon/publishable key is designed to be exposed in browser apps; RLS policies are the security boundary.
-- Never put a service_role key in config.js or any browser file.
-- A Supabase secret key was previously committed to this public repository. Rotate/revoke that key in Supabase immediately; deleting it from the latest file does not remove it from Git history.
-- Keep the Storage bucket private. Do not create a public bucket or public object URL.
-- If you enable email confirmation in Supabase Auth, users must confirm their email before signing in.
-- Configure Supabase Auth URL settings with your deployed website URL and local preview URL if needed.
-- This starter setup does not provide rate limiting, CAPTCHA, audit logs, or automated email notifications. For a large public audience, add those before launch.
-- Test with a second email: verify it is pending, cannot download, then approve it as owner and verify download works. Revoke it and verify access is blocked.
-- Only share gameplay automation for private worlds/servers where the owner and participants agree. Respect server rules.
-- The included client source is not compiled or game-tested and contains placeholder modules; disclose that to users.
+That client ZIP is not present in the connected repository or the accessible project files, so it has NOT been uploaded and downloads will remain unavailable until the actual ZIP is added. Do not substitute the website ZIP for the Minecraft client ZIP. Upload the actual client package to Supabase Storage with the exact filename above.
+
+DEPLOYMENT
+The frontend files are committed to the main branch. A live hosting URL has not been verified from this repository connection. To publish with GitHub Pages: open repository Settings > Pages > Deploy from a branch > select main and /(root) > Save. Then add the resulting site URL to Supabase Authentication > URL Configuration (Site URL and allowed Redirect URLs).
+
+FINAL TEST
+- Register and confirm the owner account if email confirmation is enabled.
+- Sign in as gjha75363@gmail.com and confirm the Owner Console appears.
+- Register a second test email. It should be pending and unable to download.
+- Approve it from the owner console and verify a signed download is generated after the client ZIP is uploaded.
+- Revoke it and verify the download is blocked.
+
+SECURITY
+- Keep aether-downloads PRIVATE.
+- Never commit the client ZIP to this public repository.
+- Never expose a service_role/secret key in browser code.
+- Configure Supabase Auth email confirmation and redirect URLs.
+- The current setup does not include CAPTCHA, rate limiting, or email notifications.
