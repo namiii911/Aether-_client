@@ -5,7 +5,7 @@ let supabase=null,mode="login",currentUser=null;
 const configured=cfg.supabaseUrl?.startsWith("https://")&&cfg.supabaseAnonKey&&!cfg.supabaseAnonKey.includes("PASTE_");
 function message(msg,error=false){$("authMessage").textContent=msg;$("authMessage").style.display="block";$("authMessage").classList.toggle("error",error)}
 function hideMessage(){$("authMessage").style.display="none"}
-function setMode(next){mode=next;$("signupTab").classList.toggle("active",mode==="signup");$("loginTab").classList.toggle("active",mode==="login");$("authTitle").textContent=mode==="signup"?"Request access":"Welcome back";$("authSubmit").innerHTML=mode==="signup"?'Register & request access <span>↗</span>':'Sign in <span>↗</span>';$("authHint").textContent=mode==="signup"?"Create your account first. Your access request will wait for owner approval.":"Sign in with the account you registered.";hideMessage()}
+function setMode(next){mode=next;$("signupTab").classList.toggle("active",mode==="signup");$("loginTab").classList.toggle("active",mode==="login");$("authTitle").textContent=mode==="signup"?"Register":"Welcome back";$("authSubmit").innerHTML=mode==="signup"?'Register & request access <span>↗</span>':'Sign in <span>↗</span>';$("authHint").textContent=mode==="signup"?"Create your account first. Your access request will wait for owner approval.":"Sign in with the account you registered.";hideMessage()}
 $("signupTab").onclick=()=>setMode("signup");$("loginTab").onclick=()=>setMode("login");
 function showMember(){ $("authPanel").classList.add("hidden");$("memberPanel").classList.remove("hidden"); }
 async function loadProfile(){
