@@ -1,0 +1,1 @@
+Upload the AETHER source ZIP to the private Supabase Storage bucket using the filename configured in config.js.
