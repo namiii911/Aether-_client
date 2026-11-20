@@ -24,8 +24,8 @@ SETUP
 1. Create a Supabase project.
 2. In Supabase, open SQL Editor and run `supabase-setup.sql`.
 3. In Storage, create a bucket named `aether-downloads` and make sure it is PRIVATE (not public).
-4. Upload `AETHER_CLIENT_1.21.11_v1.4_Mace_Spear_Crystal.zip` to that bucket with exactly that filename.
-   The source ZIP is included in this package if it was available at build time.
+4. Upload `AETHER_CLIENT_1.21.11_v1.5_Practice_Source.zip` to that bucket with exactly that filename.
+   Upload the v1.5 source ZIP supplied separately. It is source code, not a compiled Minecraft mod JAR.
 5. Open Project Settings > API. Copy the Project URL and publishable/anon key.
 6. Edit `config.js`:
    - supabaseUrl = your Project URL
@@ -36,7 +36,7 @@ SETUP
    Do NOT upload the client ZIP to the public GitHub repository. Keep it in the private Supabase bucket only.
 8. Enable GitHub Pages: repository Settings > Pages > Deploy from a branch > main > /(root) > Save.
 9. Open your published site and sign up using your owner email.
-10. After you register on the site using `gjha4456@gmail.com`, run the uncommented owner bootstrap query at the bottom of `supabase-setup.sql`. It grants admin access only to that registered account.
+10. After you register on the site using `gjha4456@gmail.com`, run the owner bootstrap UPDATE statement at the bottom of `supabase-setup.sql` again. It grants admin access only to that registered account.
 11. Sign in again on the site. You should see the Owner Console.
 12. Send the website URL to people. They can request accounts; you approve or revoke them from the owner console.
 
