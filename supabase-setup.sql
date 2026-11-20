@@ -65,5 +65,6 @@ using (
 );
 
 -- OWNER BOOTSTRAP (run only AFTER you have signed up with your owner email):
+-- Run this AFTER signing up on the website with gjha4456@gmail.com:
 -- update public.profiles set is_admin = true, status = 'approved'
--- where lower(email) = lower('YOUR_OWNER_EMAIL_HERE');
+-- where lower(email) = lower('gjha4456@gmail.com');
