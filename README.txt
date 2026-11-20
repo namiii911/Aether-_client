@@ -17,6 +17,9 @@ YOU NEED
 - The AETHER CLIENT source ZIP.
 - Your owner email address.
 
+CURRENT STATUS
+The GitHub Pages frontend is published. The Supabase owner bootstrap, private Storage bucket, client ZIP upload, and end-to-end test still need to be completed before members can use downloads.
+
 SETUP
 1. Create a Supabase project.
 2. In Supabase, open SQL Editor and run `supabase-setup.sql`.
@@ -33,13 +36,14 @@ SETUP
    Do NOT upload the client ZIP to the public GitHub repository. Keep it in the private Supabase bucket only.
 8. Enable GitHub Pages: repository Settings > Pages > Deploy from a branch > main > /(root) > Save.
 9. Open your published site and sign up using your owner email.
-10. In Supabase SQL Editor, run the owner bootstrap query shown at the bottom of `supabase-setup.sql`, replacing YOUR_OWNER_EMAIL_HERE with your real email. This grants your account admin access.
+10. After you register on the site using `gjha4456@gmail.com`, run the uncommented owner bootstrap query at the bottom of `supabase-setup.sql`. It grants admin access only to that registered account.
 11. Sign in again on the site. You should see the Owner Console.
 12. Send the website URL to people. They can request accounts; you approve or revoke them from the owner console.
 
 SECURITY NOTES
 - Supabase anon/publishable key is designed to be exposed in browser apps; RLS policies are the security boundary.
 - Never put a service_role key in config.js or any browser file.
+- A Supabase secret key was previously committed to this public repository. Rotate/revoke that key in Supabase immediately; deleting it from the latest file does not remove it from Git history.
 - Keep the Storage bucket private. Do not create a public bucket or public object URL.
 - If you enable email confirmation in Supabase Auth, users must confirm their email before signing in.
 - Configure Supabase Auth URL settings with your deployed website URL and local preview URL if needed.
