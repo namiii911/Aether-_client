@@ -27,7 +27,14 @@
 <section class="panel hidden" id="memberPanel">
 <div class="panel-head"><div><div class="eyebrow">YOUR ACCOUNT</div><h2 id="memberTitle">Access pending</h2></div><div class="lock">✦</div></div>
 <p id="memberDescription" class="bodycopy">Your request is waiting for the owner to approve it.</p>
-<div class="download-box hidden" id="downloadBox"><div><b>AETHER CLIENT v1.4</b><small>Minecraft Java 1.21.11 · Fabric source package</small></div><button class="primary" id="downloadBtn">Download ZIP ↓</button></div>
+<nav class="member-nav" aria-label="Member navigation"><a class="member-nav-link active" href="#downloadsSection">Downloads</a></nav>
+<section id="downloadsSection" class="downloads-section">
+<div class="downloads-heading"><div class="eyebrow">AETHER LIBRARY</div><h3>Downloads</h3><p class="hint">Your approved AETHER CLIENT files are collected here.</p></div>
+<div class="download-box" id="downloadBox">
+<div class="download-info"><span class="file-icon">A</span><div><b>AETHER CLIENT</b><small>Minecraft Java 1.21.11 · Fabric source package</small><small class="file-status" id="fileStatus">Approval required to download</small></div></div>
+<button class="primary" id="downloadBtn">Download Hack Client ↓</button>
+</div>
+</section>
 <div class="admin hidden" id="adminBox"><div class="admin-title"><div><div class="eyebrow">OWNER CONSOLE</div><h3>Access requests</h3></div><button class="ghost" id="refreshBtn">Refresh</button></div><div id="requests"><p class="hint">Loading requests…</p></div></div>
 <button class="ghost signout" id="signoutBtn">Sign out</button>
 </section>
