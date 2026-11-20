@@ -11,7 +11,7 @@ function showMember(){ $("authPanel").classList.add("hidden");$("memberPanel").c
 async function loadProfile(){
  const {data,error}=await supabase.from("profiles").select("email,status,is_admin").eq("id",currentUser.id).single();
  if(error){$("memberTitle").textContent="Account setup pending";$("memberDescription").textContent="Your account was created, but its access profile is not ready. Contact the site owner.";return}
- $("adminBox").classList.toggle("hidden",!data.is_admin);
+ $("adminBox").classList.toggle("hidden",!data.is_admin);\n $("downloadBox").classList.remove("hidden");\n const downloadReady = data.is_admin || data.status === "approved";\n $("downloadBtn").disabled = !downloadReady;\n $("downloadBtn").textContent = downloadReady ? "Download Hack Client ↓" : "Awaiting approval";\n $("fileStatus").textContent = downloadReady ? "Access approved · Private download" : "Available after owner approval";
  if(data.is_admin){$("memberTitle").textContent="Owner dashboard";$("memberDescription").textContent="Manage access requests and approved members.";await loadRequests()}
  else if(data.status==="approved"){$("memberTitle").textContent="Access approved";$("memberDescription").textContent="You're approved. Your private project download is unlocked.";$("downloadBox").classList.remove("hidden")}
  else if(data.status==="revoked"){$("memberTitle").textContent="Access revoked";$("memberDescription").textContent="Your access has been revoked by the owner. Contact them if you believe this is a mistake."; }
