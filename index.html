@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d18"><title>AETHER CLIENT — Private Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="glow g1"></div><div class="glow g2"></div>
+<header><a class="brand" href="#"><span class="mark">A</span>AETHER <i>CLIENT</i></a><span class="private"><b></b> PRIVATE PORTAL</span></header>
+<main>
+<section class="intro"><div class="eyebrow">INVITATION ACCESS ONLY</div><h1>Enter the<br><span>AETHER zone.</span></h1><p>A private space for approved members to access AETHER CLIENT project downloads and updates.</p><div class="trust"><span>✦ Owner approval required</span><span>✦ Access can be revoked</span></div></section>
+<section class="panel" id="authPanel">
+<div class="panel-head"><div><div class="eyebrow">MEMBER ACCESS</div><h2 id="authTitle">Request access</h2></div><div class="lock">⌑</div></div>
+<div class="tabs"><button class="tab active" id="signupTab">Request access</button><button class="tab" id="loginTab">Sign in</button></div>
+<form id="authForm">
+<label>Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+<label>Password</label><input id="password" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters" required>
+<button class="primary" id="authSubmit" type="submit">Send access request <span>↗</span></button>
+<p class="hint" id="authHint">Create an account. The owner must approve it before downloads unlock.</p>
+</form>
+<div class="notice" id="authMessage" role="status"></div>
+</section>
+<section class="panel hidden" id="memberPanel">
+<div class="panel-head"><div><div class="eyebrow">YOUR ACCOUNT</div><h2 id="memberTitle">Access pending</h2></div><div class="lock">✦</div></div>
+<p id="memberDescription" class="bodycopy">Your request is waiting for the owner to approve it.</p>
+<div class="download-box hidden" id="downloadBox"><div><b>AETHER CLIENT v1.4</b><small>Minecraft Java 1.21.11 · Fabric source package</small></div><button class="primary" id="downloadBtn">Download ZIP ↓</button></div>
+<div class="admin hidden" id="adminBox"><div class="admin-title"><div><div class="eyebrow">OWNER CONSOLE</div><h3>Access requests</h3></div><button class="ghost" id="refreshBtn">Refresh</button></div><div id="requests"><p class="hint">Loading requests…</p></div></div>
+<button class="ghost signout" id="signoutBtn">Sign out</button>
+</section>
+<div class="statusline" id="statusLine">Secure access is powered by your configured Supabase project.</div>
+</main>
+<footer><span>AETHER CLIENT</span><span>Independent community project · Not affiliated with Mojang or Microsoft</span></footer>
+<script src="config.js"></script><script src="app.js"></script>
+</body></html>
