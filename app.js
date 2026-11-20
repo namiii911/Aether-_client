@@ -1,11 +1,11 @@
 (() => {
 const cfg=window.AETHER_CONFIG||{};
 const $=id=>document.getElementById(id);
-let supabase=null,mode="signup",currentUser=null;
+let supabase=null,mode="login",currentUser=null;
 const configured=cfg.supabaseUrl?.startsWith("https://")&&cfg.supabaseAnonKey&&!cfg.supabaseAnonKey.includes("PASTE_");
 function message(msg,error=false){$("authMessage").textContent=msg;$("authMessage").style.display="block";$("authMessage").classList.toggle("error",error)}
 function hideMessage(){$("authMessage").style.display="none"}
-function setMode(next){mode=next;$("signupTab").classList.toggle("active",mode==="signup");$("loginTab").classList.toggle("active",mode==="login");$("authTitle").textContent=mode==="signup"?"Request access":"Welcome back";$("authSubmit").innerHTML=mode==="signup"?'Send access request <span>↗</span>':'Sign in <span>↗</span>';$("authHint").textContent=mode==="signup"?"Create an account. The owner must approve it before downloads unlock.":"Sign in with the account you registered.";hideMessage()}
+function setMode(next){mode=next;$("signupTab").classList.toggle("active",mode==="signup");$("loginTab").classList.toggle("active",mode==="login");$("authTitle").textContent=mode==="signup"?"Request access":"Welcome back";$("authSubmit").innerHTML=mode==="signup"?'Register & request access <span>↗</span>':'Sign in <span>↗</span>';$("authHint").textContent=mode==="signup"?"Create your account first. Your access request will wait for owner approval.":"Sign in with the account you registered.";hideMessage()}
 $("signupTab").onclick=()=>setMode("signup");$("loginTab").onclick=()=>setMode("login");
 function showMember(){ $("authPanel").classList.add("hidden");$("memberPanel").classList.remove("hidden"); }
 async function loadProfile(){
@@ -37,7 +37,7 @@ async function changeStatus(id,status){const {error}=await supabase.from("profil
 $("refreshBtn").onclick=loadRequests;
 $("authForm").addEventListener("submit",async e=>{e.preventDefault();hideMessage();const email=$("email").value.trim(),password=$("password").value;$("authSubmit").disabled=true;
  try{
- if(mode==="signup"){const {data,error}=await supabase.auth.signUp({email,password});if(error)throw error;if(data.session){currentUser=data.user;showMember();await loadProfile()}else message("Account created. Check your email if confirmation is enabled, then sign in. Your access remains pending until the owner approves it.")}
+ if(mode==="signup"){const {data,error}=await supabase.auth.signUp({email,password});if(error)throw error;if(data.session){currentUser=data.user;showMember();await loadProfile()}else message("Registration complete! Check your email if confirmation is enabled, then sign in. Your access request is now pending owner approval.")}
  else{const {data,error}=await supabase.auth.signInWithPassword({email,password});if(error)throw error;currentUser=data.user;showMember();await loadProfile()}
  }catch(err){message(err.message,true)}finally{$("authSubmit").disabled=false}
 });
