@@ -1,8 +1,8 @@
 // Supabase browser configuration.
-// Paste the Project URL from Supabase > Project Settings > API.
+// Project URL is formed from the Supabase project reference.
 // Never put a Supabase secret or service_role key in this file.
 window.AETHER_CONFIG = {
-  supabaseUrl: "PASTE_PROJECT_URL_HERE",
+  supabaseUrl: "https://qvpjbpjwnmefidfwpafe.supabase.co",
   supabaseAnonKey: "sb_publishable_xcgtRHTncN6VhWLLceT86w_HQ05aeH2",
   ownerEmail: "gjha4456@gmail.com",
   downloadBucket: "aether-downloads",
