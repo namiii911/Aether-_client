@@ -1,0 +1,30 @@
+{
+  "name": "aether-launcher",
+  "version": "0.1.0",
+  "description": "AETHER Minecraft launcher for Windows",
+  "main": "electron/main.cjs",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "gg.aether.launcher",
+    "productName": "AETHER Launcher",
+    "directories": { "output": "dist" },
+    "files": ["electron/**/*", "renderer/**/*", "package.json"],
+    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AETHER Launcher"
+    }
+  }
+}
