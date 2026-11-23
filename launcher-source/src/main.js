@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { spawnSync } = require('child_process');
 const { Client } = require('minecraft-launcher-core');
 
 let win;
@@ -8,6 +9,22 @@ let launching = false;
 
 function send(channel, payload) {
   if (win && !win.isDestroyed()) win.webContents.send(channel, payload);
+}
+
+function checkJava() {
+  const result = spawnSync('java', ['-version'], { encoding: 'utf8', windowsHide: true, timeout: 5000 });
+  if (result.error || result.status !== 0) {
+    return { available: false, major: null, version: null, message: 'Java was not found. Install Java 21 to play Minecraft 1.21.x.' };
+  }
+  const output = String(result.stderr || '') + '\n' + String(result.stdout || '');
+  const match = output.match(/version\s+"(?:1\.)?(\d+)/i) || output.match(/openjdk\s+(\d+)/i);
+  const major = match ? Number(match[1]) : null;
+  return {
+    available: Number.isInteger(major),
+    major,
+    version: output.trim().split('\n')[0] || 'Java detected',
+    message: Number.isInteger(major) ? 'Java ' + major + ' detected.' : 'Java was found, but its version could not be identified.'
+  };
 }
 
 function createWindow() {
@@ -26,6 +43,8 @@ app.whenReady().then(createWindow);
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
+ipcMain.handle('aether:check-java', () => checkJava());
+
 ipcMain.handle('aether:choose-directory', async () => {
   const result = await dialog.showOpenDialog(win, { title: 'Choose Minecraft game folder', properties: ['openDirectory', 'createDirectory'] });
   return result.canceled ? null : result.filePaths[0];
@@ -40,12 +59,19 @@ ipcMain.handle('aether:launch', async (_event, settings = {}) => {
 
   const allowedVersions = ['1.21.11', '1.21.10', '1.21.8', '1.21.5', '1.20.1'];
   const version = allowedVersions.includes(String(settings.version)) ? String(settings.version) : '1.21.11';
+  const requiredJava = version === '1.20.1' ? 17 : 21;
+  const java = checkJava();
+  if (!java.available || java.major < requiredJava) {
+    throw new Error('Minecraft ' + version + ' requires Java ' + requiredJava + ' or newer. ' + java.message + ' Install a compatible Java runtime, then restart AETHER.');
+  }
+
   const ram = [2, 4, 6, 8].includes(Number(settings.ram)) ? Number(settings.ram) : 4;
   const defaultRoot = path.join(app.getPath('appData'), '.minecraft');
   const root = path.resolve(String(settings.gameDir || defaultRoot));
   try { fs.mkdirSync(root, { recursive: true }); } catch (error) { throw new Error('Cannot create game directory: ' + error.message); }
 
   launching = true;
+  send('aether:launch-state', true);
   send('aether:status', 'Preparing Minecraft ' + version + '…');
   const launcher = new Client();
   launcher.on('debug', message => send('aether:log', String(message)));
