@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:;">
+  <title>AETHER Launcher</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">A</div><div><b>AETHER</b><small>CLIENT / LAUNCHER</small></div></div>
+      <div class="nav-label">WORKSPACE</div>
+      <button class="nav active" data-page="home"><span>◈</span> Overview</button>
+      <button class="nav" data-page="accounts"><span>◎</span> Accounts</button>
+      <button class="nav" data-page="versions"><span>▦</span> Game versions</button>
+      <button class="nav" data-page="friends"><span>♧</span> Friends</button>
+      <div class="sidebar-bottom"><div class="status-dot"></div><span>DESKTOP CLIENT</span><small id="app-version">v0.1.0</small></div>
+    </aside>
+    <main class="main">
+      <header><div><span class="eyebrow">WELCOME TO THE NEXT LEVEL</span><h1 id="page-title">Your game. Your universe.</h1></div><div class="profile-chip"><div class="avatar">A</div><div><b>Local profile</b><small>Not signed in</small></div></div></header>
+      <section id="home" class="page active-page">
+        <div class="hero">
+          <div class="hero-copy"><span class="pill"><i></i> AETHER DESKTOP</span><h2>ENTER THE<br><em>UNKNOWN.</em></h2><p>Your Minecraft setup, organized in one clean launcher. Built for the AETHER community.</p><div class="hero-actions"><button class="primary" id="play-button">PLAY <span>↗</span></button><button class="secondary" data-goto="versions">CONFIGURE GAME</button></div><small class="notice" id="play-status">Launcher foundation installed · Game engine setup is the next development step.</small></div>
+          <div class="orb-wrap"><div class="orb"><div class="orb-core">A</div></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orb-caption">AETHER / 001</div></div>
+        </div>
+        <div class="section-heading"><div><span class="eyebrow">YOUR SETUP</span><h3>Launcher status</h3></div><span class="muted">LOCAL DEVICE</span></div>
+        <div class="status-grid"><article class="status-card"><span class="card-icon">▣</span><small>GAME VERSION</small><b>1.21.11</b><span class="muted">Target version</span></article><article class="status-card"><span class="card-icon">⌘</span><small>MOD LOADER</small><b>Fabric</b><span class="muted">Planned profile</span></article><article class="status-card"><span class="card-icon">◉</span><small>ACCOUNT</small><b>Not connected</b><span class="muted">Microsoft sign-in not configured</span></article></div>
+      </section>
+      <section id="accounts" class="page"><div class="panel"><span class="eyebrow">IDENTITY</span><h2>Accounts</h2><p>Connect a Microsoft account that owns Minecraft to play online. Account authentication is not yet implemented in this foundation build.</p><div class="account-row"><div class="avatar">M</div><div><b>Microsoft account</b><small>Premium account · Coming next</small></div><span class="tag">NOT CONNECTED</span></div><div class="account-row"><div class="avatar">L</div><div><b>Local profile</b><small>Display name only · Not a Minecraft entitlement</small></div><span class="tag">AVAILABLE</span></div></div></section>
+      <section id="versions" class="page"><div class="panel"><span class="eyebrow">INSTALLATION</span><h2>Game versions</h2><p>The target configuration for AETHER is Minecraft Java 1.21.11 with Fabric.</p><div class="version-row"><div><b>Minecraft Java 1.21.11</b><small>Fabric loader · installation not yet wired</small></div><span class="tag">PLANNED</span></div><button class="secondary" id="version-info">VIEW SETUP NOTES</button></div></section>
+      <section id="friends" class="page"><div class="panel"><span class="eyebrow">COMMUNITY</span><h2>Friends</h2><p>Profiles, friend requests, and online presence are planned for a later connected-services release.</p><div class="empty-state">♧<b>Your AETHER network starts here.</b><small>Friends system is not connected yet.</small></div></div></section>
+      <footer><span>AETHER CLIENT</span><span>BUILT FOR THE COMMUNITY · <span id="footer-version">0.1.0</span></span></footer>
+    </main>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
