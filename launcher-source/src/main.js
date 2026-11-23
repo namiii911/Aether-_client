@@ -92,6 +92,21 @@ async function getPremiumSession() {
   if (safeStorage.isEncryptionAvailable()) await fs.writeFile(authFile(), safeStorage.encryptString(JSON.stringify({ refresh_token: session.refresh_token })));
   return session;
 }
+function resolveGameDirectory(value) {
+  return value && String(value).trim()
+    ? path.resolve(String(value).trim())
+    : path.join(app.getPath('appData'), '.minecraft');
+}
+async function openGameDirectory(value, child) {
+  const root = resolveGameDirectory(value);
+  const target = child ? path.join(root, child) : root;
+  await fs.mkdir(target, { recursive: true });
+  const error = await shell.openPath(target);
+  if (error) throw new Error(error);
+  return { ok: true, path: target };
+}
+ipcMain.handle('aether:open-game-folder', (_event, value) => openGameDirectory(value));
+ipcMain.handle('aether:open-mods-folder', (_event, value) => openGameDirectory(value, 'mods'));
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 ipcMain.handle('aether:microsoft-login', async () => beginMicrosoftLogin());
