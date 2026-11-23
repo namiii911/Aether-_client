@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs/promises');
+const crypto = require('crypto');
 const { Client } = require('minecraft-launcher-core');
 let win;
 let premiumSession = null;
@@ -97,6 +98,79 @@ function resolveGameDirectory(value) {
     ? path.resolve(String(value).trim())
     : path.join(app.getPath('appData'), '.minecraft');
 }
+async function ensureJavaRuntime(gameDirectory) {
+  const root = resolveGameDirectory(gameDirectory);
+  const runtimeRoot = path.join(root, 'runtime', 'java-runtime-delta', 'windows-x64');
+  const javaPath = path.join(runtimeRoot, 'bin', 'java.exe');
+  const markerPath = path.join(runtimeRoot, '.aether-runtime.json');
+  try {
+    const marker = JSON.parse(await fs.readFile(markerPath, 'utf8'));
+    await fs.access(javaPath);
+    if (marker.component === 'java-runtime-delta') return javaPath;
+  } catch {}
+  win?.webContents.send('aether:log', 'Preparing Java 21 runtime (first launch only)...');
+  const indexResponse = await fetch('https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json');
+  if (!indexResponse.ok) throw new Error('Could not load Mojang Java runtime index (' + indexResponse.status + ').');
+  const runtimeIndex = await indexResponse.json();
+  const releases = runtimeIndex['windows-x64']?.['java-runtime-delta'];
+  if (!Array.isArray(releases) || releases.length === 0) throw new Error('Mojang has no Windows x64 Java 21 runtime listed.');
+  const release = releases.find(item => item.availability?.progress === 100) || releases[0];
+  const manifestResponse = await fetch(release.manifest.url);
+  if (!manifestResponse.ok) throw new Error('Could not load Java runtime file list (' + manifestResponse.status + ').');
+  const manifest = await manifestResponse.json();
+  const safeTarget = relative => {
+    const target = path.resolve(runtimeRoot, relative);
+    if (!target.startsWith(runtimeRoot + path.sep)) throw new Error('Unsafe path in Java runtime manifest.');
+    return target;
+  };
+  const entries = Object.entries(manifest.files || {});
+  for (const [relative, entry] of entries) {
+    if (entry.type === 'directory') await fs.mkdir(safeTarget(relative), { recursive: true });
+  }
+  const files = entries.filter(([, entry]) => entry.type === 'file');
+  let completed = 0;
+  const downloadOne = async ([relative, entry]) => {
+    const destination = safeTarget(relative);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    const expected = entry.downloads?.raw;
+    if (!expected?.url || !expected.sha1) throw new Error('Java runtime manifest is missing a file checksum or URL.');
+    try {
+      const existing = await fs.readFile(destination);
+      if (existing.length === expected.size && crypto.createHash('sha1').update(existing).digest('hex') === expected.sha1) {
+        completed++;
+        return;
+      }
+    } catch {}
+    const response = await fetch(expected.url);
+    if (!response.ok) throw new Error('Java runtime download failed (' + response.status + '): ' + relative);
+    const data = Buffer.from(await response.arrayBuffer());
+    const digest = crypto.createHash('sha1').update(data).digest('hex');
+    if (digest !== expected.sha1) throw new Error('Java runtime checksum mismatch: ' + relative);
+    const temporary = destination + '.aether-download';
+    await fs.writeFile(temporary, data);
+    await fs.rename(temporary, destination);
+    if (entry.executable) await fs.chmod(destination, 0o755);
+    completed++;
+    if (completed % 20 === 0 || completed === files.length) {
+      win?.webContents.send('aether:log', 'Java runtime files: ' + completed + '/' + files.length);
+    }
+  };
+  for (let i = 0; i < files.length; i += 6) {
+    await Promise.all(files.slice(i, i + 6).map(downloadOne));
+  }
+  for (const [relative, entry] of entries) {
+    if (entry.type !== 'link' || !entry.target) continue;
+    const destination = safeTarget(relative);
+    const source = path.resolve(path.dirname(destination), entry.target);
+    if (source.startsWith(runtimeRoot + path.sep)) {
+      try { await fs.mkdir(path.dirname(destination), { recursive: true }); await fs.copyFile(source, destination); } catch {}
+    }
+  }
+  await fs.access(javaPath);
+  await fs.writeFile(markerPath, JSON.stringify({ component: 'java-runtime-delta', version: release.version?.name || '21', manifest: release.manifest.sha1 }));
+  win?.webContents.send('aether:log', 'Java 21 runtime is ready.');
+  return javaPath;
+}
 async function installFabricProfile(gameDirectory, gameVersion = '1.21.11') {
   const root = resolveGameDirectory(gameDirectory);
   const versionsDir = path.join(root, 'versions');
@@ -172,7 +246,8 @@ ipcMain.handle('aether:launch', async (_event, settings) => {
   const root = resolveGameDirectory(settings.gameDir);
   win?.webContents.send('aether:log', 'Checking Fabric profile for Minecraft 1.21.11...');
   const fabric = await installFabricProfile(root, '1.21.11');
+  const javaPath = await ensureJavaRuntime(root);
   win?.webContents.send('aether:log', 'Starting Fabric Loader ' + fabric.loaderVersion + '...');
-  await launcher.launch({ authorization, root, version: { number: '1.21.11', type: 'release', custom: fabric.versionId }, memory: { max: String(settings.ram || 4) + 'G', min: '2G' } });
+  await launcher.launch({ authorization, root, javaPath, version: { number: '1.21.11', type: 'release', custom: fabric.versionId }, memory: { max: String(settings.ram || 4) + 'G', min: '2G' } });
   return { ok: true, message: 'Minecraft launch process started.' };
 });
