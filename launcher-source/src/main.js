@@ -4,7 +4,8 @@ const fs = require('fs/promises');
 const { Client } = require('minecraft-launcher-core');
 let win;
 let premiumSession = null;
-let CLIENT_ID = process.env.AETHER_MICROSOFT_CLIENT_ID || '';\ntry { CLIENT_ID = CLIENT_ID || require('./auth-config.json').microsoftClientId || ''; } catch {}
+let CLIENT_ID = process.env.AETHER_MICROSOFT_CLIENT_ID || '';
+try { CLIENT_ID = CLIENT_ID || require('./auth-config.json').microsoftClientId || ''; } catch {}
 const authFile = () => path.join(app.getPath('userData'), 'account.dat');
 function createWindow() {
   win = new BrowserWindow({ width: 1100, height: 720, minWidth: 850, minHeight: 600, backgroundColor: '#070d18', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false } });
