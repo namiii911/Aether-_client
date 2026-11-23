@@ -86,12 +86,13 @@ ipcMain.handle('aether:install-fabric', async (_event, settings = {}) => {
     if (!Array.isArray(loaders) || !loaders.length) throw new Error('Fabric does not currently list a loader for Minecraft ' + mcVersion + '. Try another game version.');
     const loaderVersion = loaders[0].loader.version;
     const installerMeta = await getJson('https://meta.fabricmc.net/v2/versions/installer');
-    const installerVersion = installerMeta.find(item => item.version && item.url) || installerMeta[0];
-    if (!installerVersion || !installerVersion.url) throw new Error('Could not find a Fabric installer release.');
+    const installerVersion = installerMeta.find(item => item.stable) || installerMeta[0];
+    if (!installerVersion || !installerVersion.version) throw new Error('Could not find a Fabric installer release.');
+    const installerUrl = 'https://maven.fabricmc.net/net/fabricmc/fabric-installer/' + installerVersion.version + '/fabric-installer-' + installerVersion.version + '.jar';
     const installerPath = path.join(app.getPath('userData'), 'fabric-installer-' + installerVersion.version + '.jar');
     fs.mkdirSync(path.dirname(installerPath), { recursive: true });
     send('aether:status', 'Downloading Fabric installer ' + installerVersion.version + '…');
-    await downloadFile(installerVersion.url, installerPath);
+    await downloadFile(installerUrl, installerPath);
     send('aether:status', 'Installing Fabric Loader ' + loaderVersion + '…');
     const result = spawnSync('java', ['-jar', installerPath, 'client', '-dir', root, '-mcversion', mcVersion, '-loader', loaderVersion], { encoding: 'utf8', windowsHide: true, timeout: 180000, maxBuffer: 4 * 1024 * 1024 });
     const output = String(result.stdout || '') + '\n' + String(result.stderr || '');
