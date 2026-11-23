@@ -27,15 +27,12 @@ jobs:
           cache-dependency-path: launcher-source/package-lock.json
       - name: Install dependencies
         run: npm install
-      - name: Package Windows x64 launcher
+      - name: Build one-click Windows installer
         run: npm run dist:win
-      - name: Create distributable ZIP
-        shell: pwsh
-        run: Compress-Archive -Path "dist/AETHER-CLIENT-win32-x64/*" -DestinationPath "dist/AETHER-CLIENT-Windows-x64.zip"
-      - name: Upload Windows build
+      - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: AETHER-CLIENT-Windows-x64
-          path: launcher-source/dist/AETHER-CLIENT-Windows-x64.zip
+          name: AETHER-CLIENT-Installer-Windows-x64-v1.4.0
+          path: launcher-source/dist/AETHER-CLIENT-Setup-1.4.0.exe
           if-no-files-found: error
           retention-days: 14
