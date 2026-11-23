@@ -97,6 +97,45 @@ function resolveGameDirectory(value) {
     ? path.resolve(String(value).trim())
     : path.join(app.getPath('appData'), '.minecraft');
 }
+async function installFabricProfile(gameDirectory, gameVersion = '1.21.11') {
+  const root = resolveGameDirectory(gameDirectory);
+  const versionsDir = path.join(root, 'versions');
+  await fs.mkdir(versionsDir, { recursive: true });
+  const metaResponse = await fetch(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(gameVersion)}`, { headers: { Accept: 'application/json' } });
+  if (!metaResponse.ok) throw new Error(`Fabric metadata unavailable for Minecraft ${gameVersion} (${metaResponse.status}).`);
+  const choices = await metaResponse.json();
+  const selected = Array.isArray(choices) ? choices.find(item => item.loader?.stable) || choices[0] : null;
+  const loaderVersion = selected?.loader?.version;
+  if (!loaderVersion) throw new Error(`Fabric does not currently list a loader for Minecraft ${gameVersion}.`);
+  const profileResponse = await fetch(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(gameVersion)}/${encodeURIComponent(loaderVersion)}/profile/json`, { headers: { Accept: 'application/json' } });
+  if (!profileResponse.ok) throw new Error(`Could not retrieve the Fabric launch profile (${profileResponse.status}).`);
+  const profile = await profileResponse.json();
+  const profileId = String(profile.id || '');
+  if (!/^fabric-loader-[A-Za-z0-9._-]+$/.test(profileId) || profile.inheritsFrom !== gameVersion) {
+    throw new Error('Fabric returned an invalid or mismatched launch profile.');
+  }
+  const profileDir = path.join(versionsDir, profileId);
+  const profileJson = path.join(profileDir, profileId + '.json');
+  try {
+    const existing = JSON.parse(await fs.readFile(profileJson, 'utf8'));
+    if (existing.id === profileId && existing.inheritsFrom === gameVersion) return { versionId: profileId, loaderVersion, alreadyInstalled: true };
+  } catch {}
+  const zipResponse = await fetch(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(gameVersion)}/${encodeURIComponent(loaderVersion)}/profile/zip`);
+  if (!zipResponse.ok) throw new Error(`Could not download Fabric profile files (${zipResponse.status}).`);
+  const zipPath = path.join(app.getPath('temp'), `aether-fabric-${Date.now()}.zip`);
+  await fs.writeFile(zipPath, Buffer.from(await zipResponse.arrayBuffer()));
+  try {
+    const extractZip = require('extract-zip');
+    await extractZip(zipPath, { dir: versionsDir });
+  } finally {
+    await fs.rm(zipPath, { force: true }).catch(() => {});
+  }
+  const installed = JSON.parse(await fs.readFile(profileJson, 'utf8'));
+  if (installed.id !== profileId || installed.inheritsFrom !== gameVersion) {
+    throw new Error('Fabric files were extracted, but the expected profile could not be verified.');
+  }
+  return { versionId: profileId, loaderVersion, alreadyInstalled: false };
+}
 async function openGameDirectory(value, child) {
   const root = resolveGameDirectory(value);
   const target = child ? path.join(root, child) : root;
@@ -107,6 +146,11 @@ async function openGameDirectory(value, child) {
 }
 ipcMain.handle('aether:open-game-folder', (_event, value) => openGameDirectory(value));
 ipcMain.handle('aether:open-mods-folder', (_event, value) => openGameDirectory(value, 'mods'));
+ipcMain.handle('aether:install-fabric', async (_event, settings = {}) => {
+  const result = await installFabricProfile(settings.gameDir, '1.21.11');
+  win?.webContents.send('aether:log', result.alreadyInstalled ? 'Fabric profile already installed.' : 'Fabric Loader ' + result.loaderVersion + ' installed.');
+  return { ok: true, ...result };
+});
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 ipcMain.handle('aether:microsoft-login', async () => beginMicrosoftLogin());
@@ -125,7 +169,10 @@ ipcMain.handle('aether:launch', async (_event, settings) => {
   launcher.on('debug', m => win?.webContents.send('aether:log', String(m)));
   launcher.on('data', m => win?.webContents.send('aether:log', String(m)));
   launcher.on('progress', (p, s) => win?.webContents.send('aether:progress', { progress: p, status: s }));
-  const root = settings.gameDir || path.join(app.getPath('appData'), '.minecraft');
-  await launcher.launch({ authorization, root, version: { number: '1.21.11', type: 'release' }, memory: { max: String(settings.ram || 4) + 'G', min: '2G' } });
+  const root = resolveGameDirectory(settings.gameDir);
+  win?.webContents.send('aether:log', 'Checking Fabric profile for Minecraft 1.21.11...');
+  const fabric = await installFabricProfile(root, '1.21.11');
+  win?.webContents.send('aether:log', 'Starting Fabric Loader ' + fabric.loaderVersion + '...');
+  await launcher.launch({ authorization, root, version: { number: '1.21.11', type: 'release', custom: fabric.versionId }, memory: { max: String(settings.ram || 4) + 'G', min: '2G' } });
   return { ok: true, message: 'Minecraft launch process started.' };
 });
