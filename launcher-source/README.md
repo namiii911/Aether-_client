@@ -1,25 +1,30 @@
-# AETHER CLIENT Launcher (Windows)
+# AETHER CLIENT Launcher 1.4.0
 
-This folder contains the Electron desktop launcher source.
+Windows x64 Electron launcher for Minecraft Java Edition.
 
-## Build on Windows
-
-1. Install Node.js 20 LTS.
-2. Open a terminal in this folder.
+## Run locally
+1. Install Node.js 20 LTS or newer.
+2. Open a terminal in this directory.
 3. Run `npm install`.
-4. Run `npm start` to open the launcher.
-5. Run `npm run dist:win` to package the Windows x64 app into `dist/AETHER-CLIENT-win32-x64`.
+4. Run `npm start`.
 
-A GitHub Actions workflow builds the Windows ZIP automatically when launcher source changes or when manually started from the Actions tab. Download its artifact from the workflow run.
+## Build the Windows app
+Run `npm run dist:win`. The packaged app is created in `dist/AETHER-CLIENT-win32-x64`.
 
-## Current implementation status
+A GitHub Actions workflow also packages the Windows build on pushes to `launcher-source/**`. Download the workflow artifact from the Actions run (artifacts are retained for 14 days).
 
-- Electron desktop shell and AETHER interface: present.
-- Local/offline username launch flow: present as an experimental development mode.
-- Minecraft runtime download/launch: delegated to minecraft-launcher-core.
-- Microsoft account authentication: NOT implemented.
-- Fabric installation/profile selection: NOT implemented.
-- Friends, presence and cloud profiles: NOT implemented.
-- Code signing and installer: NOT configured.
+## Included
+- AETHER dark neon interface with Home, Settings and Account pages.
+- Vanilla Minecraft release selection (1.21.11, 1.21.10, 1.21.8, 1.21.5, 1.20.1).
+- RAM selection (2/4/6/8 GB).
+- Custom game directory picker.
+- Minecraft file download and launch delegated to minecraft-launcher-core.
+- Isolated Electron preload bridge and basic launch validation.
 
-**Important:** Offline username mode is not a substitute for a licensed Microsoft/Minecraft account and may not work with modern Minecraft versions or online-mode servers. Do not advertise this build as a complete production launcher until Microsoft authentication, Fabric installation, and end-to-end launch testing are implemented.
+## Not yet implemented
+- Microsoft account sign-in / ownership verification.
+- Fabric loader installation and profile management.
+- Friends, presence and cloud profiles.
+- Code signing and a conventional installer.
+
+**Important:** The current local/offline username mode is experimental. It is not a substitute for a licensed Microsoft/Minecraft account and cannot join servers that require authenticated accounts. This is a development build, not a production-ready launcher.

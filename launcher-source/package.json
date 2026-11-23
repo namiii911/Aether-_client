@@ -1,18 +1,49 @@
 {
   "name": "aether-client-launcher",
   "productName": "AETHER CLIENT",
-  "version": "1.3.2",
+  "version": "1.4.1",
   "description": "AETHER Minecraft Java launcher",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "dist:win": "electron-packager . AETHER-CLIENT --platform=win32 --arch=x64 --out=dist --overwrite --prune=true"
+    "dist:win": "electron-builder --win nsis --x64"
+  },
+  "build": {
+    "appId": "com.aether.client.launcher",
+    "productName": "AETHER CLIENT",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "AETHER-CLIENT-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AETHER CLIENT"
+    }
   },
   "devDependencies": {
     "electron": "^34.0.0",
-    "electron-packager": "^17.1.2"
+    "electron-builder": "^25.1.8"
   },
   "dependencies": {
-    "minecraft-launcher-core": "^3.18.3"
+    "minecraft-launcher-core": "^3.18.2"
   }
 }

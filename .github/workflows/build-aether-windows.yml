@@ -29,7 +29,7 @@ jobs:
       - name: Upload Windows build
         uses: actions/upload-artifact@v4
         with:
-          name: AETHER-CLIENT-Windows-x64-v1.3.2
+          name: AETHER-CLIENT-Windows-x64-v1.4.0
           path: launcher-source/dist/AETHER-CLIENT-win32-x64/
           if-no-files-found: error
           retention-days: 14
