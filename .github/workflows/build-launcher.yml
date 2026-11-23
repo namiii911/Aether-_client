@@ -33,4 +33,4 @@ jobs:
           name: AETHER-CLIENT-Installer-Windows-x64-v1.4.1
           path: launcher-source/dist/AETHER-CLIENT-Setup-1.4.1.exe
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
