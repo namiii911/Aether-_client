@@ -1,0 +1,41 @@
+name: Build AETHER CLIENT for Windows
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "launcher-source/**"
+      - ".github/workflows/build-launcher.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: launcher-source
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: launcher-source/package-lock.json
+      - name: Install dependencies
+        run: npm install
+      - name: Package Windows x64 launcher
+        run: npm run dist:win
+      - name: Create distributable ZIP
+        shell: pwsh
+        run: Compress-Archive -Path "dist/AETHER-CLIENT-win32-x64/*" -DestinationPath "dist/AETHER-CLIENT-Windows-x64.zip"
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: AETHER-CLIENT-Windows-x64
+          path: launcher-source/dist/AETHER-CLIENT-Windows-x64.zip
+          if-no-files-found: error
+          retention-days: 14
