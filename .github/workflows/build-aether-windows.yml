@@ -32,7 +32,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: AETHER-CLIENT-Windows-Installer-v1.4.0
+          name: AETHER-CLIENT-Windows-Installer-v1.5.0
           path: launcher-source/dist/*.exe
           if-no-files-found: error
           retention-days: 14
