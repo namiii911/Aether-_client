@@ -99,11 +99,11 @@ ipcMain.handle('aether:launch', async (_event, settings) => {
   let authorization;
   if (accountType === 'premium') {
     const session = await getPremiumSession();
-    authorization = { access_token: session.access_token, client_token: session.client_token, uuid: session.uuid, name: session.name, user_properties: session.user_properties };
+    authorization = { access_token: session.access_token, client_token: session.client_token, uuid: session.uuid, name: session.name, user_properties: session.user_properties, meta: { type: 'msa', demo: false } };
   } else {
     const username = String(settings.username || '').trim();
     if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) throw new Error('Enter a valid offline username (3–16 letters, numbers or underscores).');
-    authorization = { access_token: '0', client_token: '0', uuid: '00000000-0000-0000-0000-000000000000', name: username, user_properties: '{}' };
+    authorization = { access_token: '0', client_token: '0', uuid: '00000000-0000-0000-0000-000000000000', name: username, user_properties: '{}', meta: { type: 'mojang', demo: false } };
   }
   const launcher = new Client();
   launcher.on('debug', m => win?.webContents.send('aether:log', String(m)));
