@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('aether', {
   launch: settings => ipcRenderer.invoke('aether:launch', settings),
+  checkJava: () => ipcRenderer.invoke('aether:check-java'),
   chooseDirectory: () => ipcRenderer.invoke('aether:choose-directory'),
   onLog: callback => {
     const listener = (_event, message) => callback(message);
