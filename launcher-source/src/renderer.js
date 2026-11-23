@@ -109,7 +109,8 @@ play.addEventListener('click', async () => {
       username: $('username').value,
       ram: $('ram').value,
       version: $('version').value,
-      gameDir: $('gameDir').value
+      gameDir: $('gameDir').value,
+      loader: $('loader').value
     });
     status.textContent = result.message;
     add(result.message);
