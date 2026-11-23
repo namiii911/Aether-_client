@@ -4,7 +4,7 @@ const status = $('status');
 const log = $('log');
 const progress = $('progress');
 const progressBar = $('progressBar');
-const settingIds = ['username', 'version', 'ram', 'gameDir'];
+const settingIds = ['username', 'version', 'ram', 'gameDir', 'loader'];
 
 function add(message) {
   log.textContent = (log.textContent + '\n' + message).slice(-8000);
@@ -57,12 +57,36 @@ window.aether.onProgress(value => {
     progressBar.style.width = Math.max(0, Math.min(100, amount)) + '%';
   }
 });
+window.aether.onInstallState(running => {
+  $('installFabric').disabled = Boolean(running);
+  if (running) { progress.hidden = false; progressBar.style.width = '15%'; }
+});
 window.aether.onLaunchState(running => {
   play.disabled = Boolean(running);
   if (!running) progress.hidden = true;
 });
 
 $('checkJava').addEventListener('click', refreshJava);
+$('installFabric').addEventListener('click', async () => {
+  saveSettings();
+  $('installFabric').disabled = true;
+  status.textContent = 'Installing Fabric…';
+  progress.hidden = false;
+  progressBar.style.width = '5%';
+  add('Installing Fabric for Minecraft ' + $('version').value + '…');
+  try {
+    const result = await window.aether.installFabric({ version: $('version').value, gameDir: $('gameDir').value });
+    status.textContent = result.message;
+    progressBar.style.width = '100%';
+    add(result.message + ' Select Fabric in the profile menu to launch it.');
+    $('loader').value = 'fabric';
+    saveSettings();
+  } catch (error) {
+    status.textContent = 'Fabric installation failed';
+    add('FABRIC ERROR: ' + error.message);
+    alert(error.message);
+  } finally { $('installFabric').disabled = false; }
+});
 $('chooseDir').addEventListener('click', async () => {
   try {
     const directory = await window.aether.chooseDirectory();
