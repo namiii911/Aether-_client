@@ -28,6 +28,7 @@ If this value is still the template placeholder, Premium sign-in will show a cle
 - Minecraft entitlement and profile checks: implemented in source.
 - Game folder and mods folder shortcuts: implemented; they create the folders if missing.
 - Fabric Loader installation: downloads the stable Fabric profile matching Minecraft 1.21.11 from the official Fabric Meta API, extracts the launcher profile, and launches it through minecraft-launcher-core. The launcher also checks/installs the profile before Play.
+- Java runtime: automatically downloads Mojang's Windows x64 Java 21 runtime on first launch, verifies each file against Mojang's SHA-1 metadata, and reuses it on later launches.
 - Mods folder shortcut: opens the active game directory's `mods` folder. Add mods compatible with Fabric Loader and Minecraft 1.21.11.
 - Friends, presence and cloud profiles: not yet implemented.
 - Windows build artifact: produced by GitHub Actions; verify the latest run before distributing. The CI build checks syntax and packages the installer; actual Minecraft gameplay still needs a Windows test.
