@@ -148,6 +148,7 @@ async function ensureJavaRuntime(gameDirectory) {
     if (digest !== expected.sha1) throw new Error('Java runtime checksum mismatch: ' + relative);
     const temporary = destination + '.aether-download';
     await fs.writeFile(temporary, data);
+    await fs.rm(destination, { force: true });
     await fs.rename(temporary, destination);
     if (entry.executable) await fs.chmod(destination, 0o755);
     completed++;
