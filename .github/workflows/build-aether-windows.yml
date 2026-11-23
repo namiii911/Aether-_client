@@ -20,16 +20,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: launcher-source/package-lock.json
       - name: Install launcher dependencies
         working-directory: launcher-source
         run: npm install --no-audit --no-fund
-      - name: Package Windows x64 launcher
+      - name: Build Windows installer
         working-directory: launcher-source
         run: npm run dist:win
-      - name: Upload Windows build
+      - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: AETHER-CLIENT-Windows-x64-v1.3.2
-          path: launcher-source/dist/AETHER-CLIENT-win32-x64/
+          name: AETHER-CLIENT-Windows-Installer-v1.4.0
+          path: launcher-source/dist/*.exe
           if-no-files-found: error
           retention-days: 14
