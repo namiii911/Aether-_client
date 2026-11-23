@@ -26,6 +26,7 @@ If this value is still the template placeholder, Premium sign-in will show a cle
 - Local username launch path: implemented as experimental/offline mode.
 - Microsoft device-code OAuth and Xbox/Minecraft token exchange: implemented in source; requires AETHER's client ID and end-to-end testing.
 - Minecraft entitlement and profile checks: implemented in source.
-- Fabric installation/profile: not yet implemented.
+- Game folder and mods folder shortcuts: implemented; they create the folders if missing.
+- Fabric installation/profile: not yet implemented; the mods folder shortcut does not install Fabric.
 - Friends, presence and cloud profiles: not yet implemented.
 - Windows build artifact: produced by GitHub Actions; verify the latest run before distributing.
