@@ -4,11 +4,48 @@ const status = $('status');
 const log = $('log');
 const progress = $('progress');
 const progressBar = $('progressBar');
+const settingIds = ['username', 'version', 'ram', 'gameDir'];
 
 function add(message) {
   log.textContent = (log.textContent + '\n' + message).slice(-8000);
   log.scrollTop = log.scrollHeight;
 }
+
+function saveSettings() {
+  const values = {};
+  for (const id of settingIds) values[id] = $(id).value;
+  try { localStorage.setItem('aether-launcher-settings', JSON.stringify(values)); } catch (_) {}
+}
+
+function restoreSettings() {
+  try {
+    const values = JSON.parse(localStorage.getItem('aether-launcher-settings') || '{}');
+    for (const id of settingIds) {
+      if (typeof values[id] === 'string' && $(id)) $(id).value = values[id];
+    }
+  } catch (_) {}
+}
+
+async function refreshJava() {
+  const badge = $('javaStatus');
+  badge.textContent = 'Checking Java…';
+  try {
+    const result = await window.aether.checkJava();
+    badge.textContent = result.message;
+    badge.dataset.ready = result.available && result.major >= 21 ? 'yes' : 'no';
+    add(result.message);
+  } catch (error) {
+    badge.textContent = 'Could not check Java: ' + error.message;
+    badge.dataset.ready = 'no';
+  }
+}
+
+restoreSettings();
+for (const id of settingIds) {
+  $(id).addEventListener('change', saveSettings);
+  $(id).addEventListener('input', saveSettings);
+}
+
 window.aether.onLog(add);
 window.aether.onStatus(message => { status.textContent = message; });
 window.aether.onProgress(value => {
@@ -25,14 +62,19 @@ window.aether.onLaunchState(running => {
   if (!running) progress.hidden = true;
 });
 
+$('checkJava').addEventListener('click', refreshJava);
 $('chooseDir').addEventListener('click', async () => {
   try {
     const directory = await window.aether.chooseDirectory();
-    if (directory) $('gameDir').value = directory;
+    if (directory) {
+      $('gameDir').value = directory;
+      saveSettings();
+    }
   } catch (error) { add('Folder picker error: ' + error.message); }
 });
 
 play.addEventListener('click', async () => {
+  saveSettings();
   play.disabled = true;
   progress.hidden = false;
   progressBar.style.width = '0%';
@@ -62,3 +104,5 @@ document.querySelectorAll('[data-page]').forEach(button => {
     document.querySelectorAll('.page').forEach(page => page.hidden = page.id !== button.dataset.page);
   });
 });
+
+refreshJava();
