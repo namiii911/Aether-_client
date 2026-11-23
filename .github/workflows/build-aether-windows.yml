@@ -20,8 +20,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: launcher-source/package-lock.json
       - name: Install launcher dependencies
         working-directory: launcher-source
         run: npm install --no-audit --no-fund
