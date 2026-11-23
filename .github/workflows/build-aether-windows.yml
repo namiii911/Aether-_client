@@ -1,0 +1,64 @@
+name: Build AETHER CLIENT for Windows
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "launcher-source/AETHER-CLIENT-Launcher-v1.3.2-Windows-Friend-Test.zip"
+      - ".github/workflows/build-aether-windows.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: launcher-source/package-lock.json
+
+      - name: Verify launcher source archive
+        shell: pwsh
+        run: |
+          $archive = "launcher-source/AETHER-CLIENT-Launcher-v1.3.2-Windows-Friend-Test.zip"
+          if (!(Test-Path $archive)) {
+            throw "Launcher source ZIP is missing. Upload it to launcher-source/ in the repository, then run this workflow again."
+          }
+
+      - name: Extract launcher source
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "launcher-build" | Out-Null
+          Expand-Archive -LiteralPath "launcher-source/AETHER-CLIENT-Launcher-v1.3.2-Windows-Friend-Test.zip" -DestinationPath "launcher-build" -Force
+          $project = "launcher-build/AETHER-CLIENT-Launcher-v1.3.2"
+          if (!(Test-Path "$project/package.json")) {
+            throw "The ZIP does not contain the expected AETHER launcher project."
+          }
+          "AETHER_PROJECT=$project" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          Set-Location $env:AETHER_PROJECT
+          npm install --no-audit --no-fund
+
+      - name: Package Windows x64 launcher
+        shell: pwsh
+        run: |
+          Set-Location $env:AETHER_PROJECT
+          npm run dist:win
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: AETHER-CLIENT-Windows-x64-v1.3.2
+          path: launcher-build/AETHER-CLIENT-Launcher-v1.3.2/dist/AETHER-CLIENT-win32-x64/
+          if-no-files-found: error
+          retention-days: 14
