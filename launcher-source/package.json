@@ -13,6 +13,6 @@
     "electron-packager": "^17.1.2"
   },
   "dependencies": {
-    "minecraft-launcher-core": "^3.18.3"
+    "minecraft-launcher-core": "^3.18.2"
   }
 }
