@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('aether', {
   socialRespond: data => ipcRenderer.invoke('aether:social-respond', data),
   socialRemove: id => ipcRenderer.invoke('aether:social-remove', id),
   socialHeartbeat: () => ipcRenderer.invoke('aether:social-heartbeat'),
+  socialProfileUpdate: data => ipcRenderer.invoke('aether:social-profile-update', data),
   installFabric: settings => ipcRenderer.invoke('aether:install-fabric', settings),
   onLog: callback => ipcRenderer.on('aether:log', (_event, message) => callback(message)),
   onProgress: callback => ipcRenderer.on('aether:progress', (_event, value) => callback(value))
