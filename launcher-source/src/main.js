@@ -124,12 +124,18 @@ ipcMain.handle('aether:launch', async (_event, settings = {}) => {
     win?.webContents.send('aether:progress', { progress, status });
   });
 
-  const profile = settings.profile === 'fabric'
-    ? `fabric-loader-${settings.fabricVersion || 'latest'}-${MINECRAFT_VERSION}`
-    : MINECRAFT_VERSION;
-
-  if (settings.profile === 'fabric' && !fs.existsSync(path.join(root, 'versions', profile, `${profile}.json`))) {
-    throw new Error('Fabric is not installed yet. Click INSTALL FABRIC first.');
+  let profile = MINECRAFT_VERSION;
+  if (settings.profile === 'fabric') {
+    const versionsDir = path.join(root, 'versions');
+    const installedProfiles = fs.existsSync(versionsDir)
+      ? fs.readdirSync(versionsDir, { withFileTypes: true })
+          .filter(entry => entry.isDirectory() && entry.name.startsWith('fabric-loader-') && entry.name.endsWith(`-${MINECRAFT_VERSION}`))
+          .map(entry => entry.name)
+          .filter(name => fs.existsSync(path.join(versionsDir, name, `${name}.json`)))
+          .sort()
+      : [];
+    profile = installedProfiles[installedProfiles.length - 1];
+    if (!profile) throw new Error('Fabric is not installed yet. Click INSTALL FABRIC first.');
   }
 
   await launcher.launch({
