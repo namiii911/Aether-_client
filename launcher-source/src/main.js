@@ -12,6 +12,7 @@ const MINECRAFT_VERSION = '1.21.11';
 const JAVA_MAJOR = 21;
 let win;
 let cachedMicrosoftXbox = null;
+let socialRealtimeChannel = null;
 const microsoftTokenPath = () => path.join(app.getPath('userData'), 'microsoft-account.dat');
 
 function saveMicrosoftRefreshToken(refreshToken) {
@@ -226,6 +227,14 @@ const socialClient = createClient(socialConfig.supabaseUrl, socialConfig.supabas
   }
 });
 
+function startSocialRealtime() {
+  if (socialRealtimeChannel) return;
+  socialRealtimeChannel = socialClient.channel('aether-network')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'aether_friendships' }, () => win?.webContents.send('aether:social-refresh'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'aether_presence' }, () => win?.webContents.send('aether:social-refresh'))
+    .subscribe();
+}
+
 async function requireSocialUser() {
   const { data, error } = await socialClient.auth.getSession();
   if (error) throw error;
@@ -245,6 +254,8 @@ async function getSocialProfile(userId) {
 }
 
 async function socialSignIn(email, password, createAccount = false) {
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(email || '').trim())) throw new Error('Enter a valid email address.');
+  if (String(password || '').length < 8) throw new Error('Password must be at least 8 characters.');
   const result = createAccount
     ? await socialClient.auth.signUp({ email, password })
     : await socialClient.auth.signInWithPassword({ email, password });
@@ -258,11 +269,13 @@ async function socialSignIn(email, password, createAccount = false) {
     status: 'online',
     last_seen_at: new Date().toISOString()
   });
+  startSocialRealtime();
   return { ok: true, profile };
 }
 
 async function listSocialData() {
   const user = await requireSocialUser();
+  startSocialRealtime();
   const { data: relations, error } = await socialClient
     .from('aether_friendships')
     .select('id,user_a,user_b,requested_by,status,created_at')
@@ -353,6 +366,7 @@ ipcMain.handle('aether:social-logout', async () => {
   const { data } = await socialClient.auth.getSession();
   const userId = data.session?.user?.id;
   if (userId) await socialClient.from('aether_presence').upsert({ user_id: userId, status: 'offline', last_seen_at: new Date().toISOString() });
+  if (socialRealtimeChannel) { await socialClient.removeChannel(socialRealtimeChannel); socialRealtimeChannel = null; }
   await socialClient.auth.signOut();
   return { ok: true };
 });
