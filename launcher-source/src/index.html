@@ -18,7 +18,7 @@ button{margin-top:18px;padding:14px 22px;border:0;border-radius:8px;background:l
 button.secondary{background:#102b43;border:1px solid #26729b}button:disabled{opacity:.5;cursor:wait}
 #status{color:#80d9ff;margin-left:14px;font-size:13px}pre{white-space:pre-wrap;max-height:150px;overflow:auto;color:#86a8c2;font-size:11px;margin-top:20px}
 .actions{display:flex;gap:10px;flex-wrap:wrap}.notice{font-size:12px;color:#d5b979;margin-top:15px;line-height:1.6}
-@media(max-width:700px){.shell{grid-template-columns:1fr}.side{display:none}.main{padding:28px 18px}.hero{font-size:46px}}
+.social-panel{margin-top:24px}.social-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}.social-columns h3{font-size:15px}.social-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}.social-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;background:#061321;border:1px solid #245574;border-radius:9px}.social-name{font-size:13px;font-weight:700}.social-handle{font-size:11px;color:#8eabc3}.social-online{color:#65e5b2}.social-offline{color:#8eabc3}.social-actions{display:flex;gap:6px;flex-wrap:wrap}.social-actions button{margin:0;padding:8px 10px;font-size:10px}.social-columns .social-item{align-items:flex-start}@media(max-width:700px){.social-columns{grid-template-columns:1fr}.shell{grid-template-columns:1fr}.side{display:none}.main{padding:28px 18px}.hero{font-size:46px}}
 </style></head>
 <body><div class="shell">
 <aside class="side"><div class="brand">✦ AETHER</div><div class="nav"><strong>◈ &nbsp; HOME</strong>♧ &nbsp; FRIENDS<br>⇩ &nbsp; DOWNLOADS<br>⚙ &nbsp; SETTINGS<br>◎ &nbsp; ACCOUNT</div><div class="version">WINDOWS EDITION · v1.3.5<br>MINECRAFT JAVA 1.21.11</div></aside>
@@ -38,4 +38,22 @@ button.secondary{background:#102b43;border:1px solid #26729b}button:disabled{opa
 <div class="actions"><button class="secondary" id="installFabric">⬇ INSTALL FABRIC</button><button id="play">▶ PLAY MINECRAFT</button></div>
 <div class="notice">Java 21 is downloaded automatically on first use for Windows 64-bit. You can provide your own java.exe above. Local mode is offline-only and cannot join online-mode servers. Microsoft sign-in checks Minecraft Java ownership and stores its refresh token encrypted with Windows secure storage.</div>
 <span id="status">READY</span><pre id="log">AETHER launcher initialized.</pre>
+</section>
+<section class="panel social-panel"><div class="eyebrow">AETHER NETWORK</div><h2>Friends & Profiles</h2>
+<p class="sub">Create an AETHER account to find players, send friend requests and see when friends are online.</p>
+<div class="row" style="margin-top:18px">
+<div class="field"><label>AETHER ACCOUNT EMAIL</label><input id="socialEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
+<div class="field"><label>PASSWORD</label><input id="socialPassword" type="password" placeholder="At least 8 characters" autocomplete="current-password"></div>
+</div>
+<div class="actions"><button id="socialLogin">SIGN IN</button><button class="secondary" id="socialSignup">CREATE AETHER ACCOUNT</button><button class="secondary" id="socialLogout">SIGN OUT</button></div>
+<div class="notice" id="socialStatus" style="display:block">Not signed in to AETHER Network.</div>
+<div class="row" style="margin-top:22px">
+<div class="field"><label>FIND PLAYERS BY USERNAME</label><input id="socialSearch" placeholder="AETHER username"></div>
+<div class="field" style="flex:0 0 150px;min-width:150px"><label>&nbsp;</label><button id="socialSearchButton" style="width:100%;margin-top:0">SEARCH</button></div>
+</div>
+<div id="socialResults" class="social-list"></div>
+<div class="social-columns">
+<div><h3>Friend requests</h3><div id="incomingRequests" class="social-list"><span class="sub">Sign in to view requests.</span></div><div id="outgoingRequests" class="social-list"></div></div>
+<div><h3>Your friends</h3><div id="friendsList" class="social-list"><span class="sub">Sign in to view friends.</span></div></div>
+</div>
 </section></main></div><script src="renderer.js"></script></body></html>
