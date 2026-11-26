@@ -23,7 +23,7 @@ The canonical build is `.github/workflows/build-aether-windows.yml`. It builds t
 - RAM and game-directory settings: available.
 - Launch console: receives launcher and game output.
 - Microsoft account sign-in: implemented through the MSMC Microsoft/Xbox/Minecraft authentication flow; AETHER checks Minecraft Java entitlement and encrypts the refresh token with Electron safeStorage. Actual interactive sign-in still needs a Windows-device test.
-- AETHER Network: email/password AETHER accounts, editable public player profiles, friend requests, accept/decline/remove actions, and friend-only online presence are implemented against the connected Supabase project. Actual two-account end-to-end testing is still required.
+- AETHER Network: a free AETHER email/password account (separate from the Minecraft account) provides editable player profiles, friend requests, accept/decline/remove actions, and friend-only online presence through the connected Supabase project. Actual two-account end-to-end testing is still required.
 - End-to-end gameplay testing: NOT yet verified on a real Windows PC.
 
 **Testing limitation:** CI can validate JavaScript and package the Windows installer, but it cannot verify the live Microsoft sign-in window, Minecraft ownership, game launch, or two-user friend flows. Those require a real Windows PC and two AETHER accounts. Microsoft sign-in uses MSMC's built-in Minecraft Launcher OAuth client and validates Minecraft Java entitlement before launch.
