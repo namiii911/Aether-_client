@@ -58,6 +58,9 @@ const socialLogin=document.getElementById('socialLogin');
 const socialSignup=document.getElementById('socialSignup');
 const socialLogout=document.getElementById('socialLogout');
 const socialStatus=document.getElementById('socialStatus');
+const socialUsername=document.getElementById('socialUsername');
+const socialDisplayName=document.getElementById('socialDisplayName');
+const socialSaveProfile=document.getElementById('socialSaveProfile');
 const socialSearch=document.getElementById('socialSearch');
 const socialSearchButton=document.getElementById('socialSearchButton');
 const socialResults=document.getElementById('socialResults');
@@ -82,6 +85,8 @@ async function refreshSocial(){
   try{
     const data=await window.aether.socialState();
     socialMessage('Signed in as @'+data.profile.username);
+    if(document.activeElement!==socialUsername)socialUsername.value=data.profile.username;
+    if(document.activeElement!==socialDisplayName)socialDisplayName.value=data.profile.display_name;
     incomingRequests.replaceChildren();outgoingRequests.replaceChildren();friendsList.replaceChildren();
     if(!data.incoming.length)incomingRequests.textContent='No incoming requests.';
     data.incoming.forEach(item=>{
@@ -135,3 +140,10 @@ socialSearchButton.addEventListener('click',async()=>{
 setInterval(async()=>{
   try{await window.aether.socialHeartbeat();await refreshSocial()}catch(_error){}
 },20000);
+
+socialSaveProfile.addEventListener('click',async()=>{
+  socialSaveProfile.disabled=true;
+  try{const profile=await window.aether.socialProfileUpdate({username:socialUsername.value,displayName:socialDisplayName.value});socialMessage('Profile saved: @'+profile.username);await refreshSocial()}
+  catch(error){socialMessage(error.message,true)}
+  finally{socialSaveProfile.disabled=false}
+});
