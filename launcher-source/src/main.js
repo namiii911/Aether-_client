@@ -1,13 +1,45 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
 const { Client } = require('minecraft-launcher-core');
+const { Auth } = require('msmc');
 
 const MINECRAFT_VERSION = '1.21.11';
 const JAVA_MAJOR = 21;
 let win;
+let cachedMicrosoftXbox = null;
+const microsoftTokenPath = () => path.join(app.getPath('userData'), 'microsoft-account.dat');
+
+function saveMicrosoftRefreshToken(refreshToken) {
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure credential storage is unavailable on this Windows account.');
+  fs.mkdirSync(path.dirname(microsoftTokenPath()), { recursive: true });
+  fs.writeFileSync(microsoftTokenPath(), safeStorage.encryptString(refreshToken));
+}
+
+async function getMicrosoftXbox() {
+  if (cachedMicrosoftXbox && cachedMicrosoftXbox.validate()) return cachedMicrosoftXbox;
+  const file = microsoftTokenPath();
+  if (!fs.existsSync(file)) throw new Error('Sign in with your Microsoft account first.');
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure credential storage is unavailable on this Windows account.');
+  const refreshToken = safeStorage.decryptString(fs.readFileSync(file));
+  const auth = new Auth('select_account');
+  cachedMicrosoftXbox = await auth.refresh(refreshToken);
+  const updated = cachedMicrosoftXbox.msToken?.refresh_token;
+  if (updated) saveMicrosoftRefreshToken(updated);
+  return cachedMicrosoftXbox;
+}
+
+async function getMicrosoftAuthorization() {
+  const xbox = await getMicrosoftXbox();
+  const minecraft = await xbox.getMinecraft();
+  const entitlements = await minecraft.entitlements();
+  if (!entitlements.includes('game_minecraft') && !entitlements.includes('product_minecraft')) {
+    throw new Error('This Microsoft account does not appear to own Minecraft Java Edition.');
+  }
+  return minecraft.mclc();
+}
 
 function sendLog(message) {
   win?.webContents.send('aether:log', String(message));
@@ -171,6 +203,33 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+ipcMain.handle('aether:login-microsoft', async () => {
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure credential storage is unavailable. AETHER cannot safely save Microsoft credentials on this device.');
+  sendLog('Opening Microsoft sign-in...');
+  const auth = new Auth('select_account');
+  auth.on('load', (_asset, message) => sendLog(message));
+  const xbox = await auth.launch('electron', { width: 600, height: 720, resizable: true });
+  const minecraft = await xbox.getMinecraft();
+  const entitlements = await minecraft.entitlements();
+  if (!entitlements.includes('game_minecraft') && !entitlements.includes('product_minecraft')) {
+    throw new Error('Microsoft sign-in worked, but this account does not appear to own Minecraft Java Edition.');
+  }
+  const refreshToken = xbox.msToken?.refresh_token;
+  if (!refreshToken) throw new Error('Microsoft did not return a refresh token. Please try signing in again.');
+  saveMicrosoftRefreshToken(refreshToken);
+  cachedMicrosoftXbox = xbox;
+  sendLog('Microsoft account verified: ' + minecraft.profile.name);
+  return { ok: true, username: minecraft.profile.name };
+});
+
+ipcMain.handle('aether:logout-microsoft', async () => {
+  cachedMicrosoftXbox = null;
+  fs.rmSync(microsoftTokenPath(), { force: true });
+  return { ok: true };
+});
+
+ipcMain.handle('aether:account-status', async () => ({ signedIn: fs.existsSync(microsoftTokenPath()) }));
+
 ipcMain.handle('aether:install-fabric', async (_event, settings = {}) => {
   const root = settings.gameDir ? path.resolve(settings.gameDir) : path.join(app.getPath('appData'), '.minecraft');
   fs.mkdirSync(root, { recursive: true });
@@ -182,10 +241,8 @@ ipcMain.handle('aether:install-fabric', async (_event, settings = {}) => {
 ipcMain.handle('aether:launch', async (_event, settings = {}) => {
   const accountType = settings.accountType || 'local';
   const username = String(settings.username || '').trim();
-  if (accountType !== 'local') {
-    throw new Error('Microsoft sign-in is not configured yet. AETHER will not pretend a local account is a premium account.');
-  }
-  if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) {
+  if (!['local', 'microsoft'].includes(accountType)) throw new Error('Choose a supported account type.');
+  if (accountType === 'local' && !/^[A-Za-z0-9_]{3,16}$/.test(username)) {
     throw new Error('Enter a valid local username (3–16 letters, numbers or underscores).');
   }
 
@@ -195,6 +252,16 @@ ipcMain.handle('aether:launch', async (_event, settings = {}) => {
   fs.mkdirSync(root, { recursive: true });
   sendLog('Preparing Java 21...');
   const javaPath = await resolveJava(settings.javaPath);
+  const authorization = accountType === 'microsoft'
+    ? await getMicrosoftAuthorization()
+    : {
+        access_token: '0',
+        client_token: '0',
+        uuid: offlineUuid(username),
+        name: username,
+        user_properties: '{}',
+        meta: { type: 'mojang', demo: false }
+      };
   const launcher = new Client();
   launcher.on('debug', message => sendLog(message));
   launcher.on('data', message => sendLog(message));
@@ -217,14 +284,7 @@ ipcMain.handle('aether:launch', async (_event, settings = {}) => {
   }
 
   await launcher.launch({
-    authorization: {
-      access_token: '0',
-      client_token: '0',
-      uuid: offlineUuid(username),
-      name: username,
-      user_properties: '{}',
-      meta: { type: 'mojang', demo: false }
-    },
+    authorization,
     root,
     javaPath,
     version: settings.profile === 'fabric'
