@@ -87,6 +87,16 @@ function runProcess(command, args, options = {}) {
   });
 }
 
+async function verifyJava(javaPath) {
+  const output = await runProcess(javaPath, ['-version']);
+  const match = output.match(/version \"(\\d+)(?:[._-]|\")/i) || output.match(/openjdk\\s+(\\d+)/i) || output.match(/java\\s+(\\d+)/i);
+  const major = match ? Number(match[1]) : NaN;
+  if (!Number.isFinite(major) || major < 21) {
+    throw new Error('Minecraft 1.21.11 requires Java 21 or newer. Select a Java 21+ java.exe or leave the field blank for automatic setup.');
+  }
+  return javaPath;
+}
+
 function findJava(root) {
   if (!fs.existsSync(root)) return null;
   for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
@@ -102,8 +112,7 @@ async function resolveJava(customPath) {
     if (!fs.existsSync(selected) || !fs.statSync(selected).isFile()) {
       throw new Error('The custom Java path does not point to a file. Select java.exe or clear the custom path.');
     }
-    await runProcess(selected, ['-version']);
-    return selected;
+    return verifyJava(selected);
   }
 
   if (process.platform !== 'win32' || process.arch !== 'x64') {
@@ -112,7 +121,7 @@ async function resolveJava(customPath) {
 
   const runtimeRoot = path.join(app.getPath('userData'), 'runtime', 'temurin-21');
   const installedJava = findJava(runtimeRoot);
-  if (installedJava) return installedJava;
+  if (installedJava) return verifyJava(installedJava);
 
   sendLog('Java 21 was not found. Downloading Eclipse Temurin JRE 21...');
   const metadataUrl = 'https://api.adoptium.net/v3/assets/latest/21/hotspot?architecture=x64&image_type=jre&os=windows&vendor=eclipse';
@@ -151,7 +160,7 @@ async function resolveJava(customPath) {
   fs.rmSync(zipPath, { force: true });
   const finalJava = findJava(runtimeRoot);
   if (!finalJava) throw new Error('Java 21 installation did not complete correctly.');
-  await runProcess(finalJava, ['-version']);
+  await verifyJava(finalJava);
   sendLog('Java 21 is ready.');
   return finalJava;
 }
