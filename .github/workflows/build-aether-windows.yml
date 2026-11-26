@@ -13,6 +13,9 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: launcher-source
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -21,15 +24,13 @@ jobs:
         with:
           node-version: 22
       - name: Install launcher dependencies
-        working-directory: launcher-source
         run: npm install --no-audit --no-fund
       - name: Package Windows x64 launcher
-        working-directory: launcher-source
         run: npm run dist:win
-      - name: Upload Windows build
+      - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: AETHER-CLIENT-Windows-x64-v1.3.2
-          path: launcher-source/dist/AETHER-CLIENT-win32-x64/
+          name: AETHER-CLIENT-Windows-x64
+          path: launcher-source/dist/*.exe
           if-no-files-found: error
           retention-days: 14
