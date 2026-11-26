@@ -89,7 +89,7 @@ function runProcess(command, args, options = {}) {
 
 async function verifyJava(javaPath) {
   const output = await runProcess(javaPath, ['-version']);
-  const match = output.match(/version \"(\\d+)(?:[._-]|\")/i) || output.match(/openjdk\\s+(\\d+)/i) || output.match(/java\\s+(\\d+)/i);
+  const match = output.match(/version "(\d+)(?:[._-]|")/i) || output.match(/openjdk\s+(\d+)/i) || output.match(/java\s+(\d+)/i);
   const major = match ? Number(match[1]) : NaN;
   if (!Number.isFinite(major) || major < 21) {
     throw new Error('Minecraft 1.21.11 requires Java 21 or newer. Select a Java 21+ java.exe or leave the field blank for automatic setup.');
