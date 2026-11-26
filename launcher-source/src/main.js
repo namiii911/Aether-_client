@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
-const { Client } = require('minecraft-launcher-core');
+const { Client, Authenticator } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
 const { createClient } = require('@supabase/supabase-js');
 const socialConfig = require('./social-config');
@@ -85,14 +85,6 @@ function runProcess(command, args, options = {}) {
       else reject(new Error(output.trim() || `${command} exited with code ${code}`));
     });
   });
-}
-
-function offlineUuid(username) {
-  const bytes = crypto.createHash('md5').update(`OfflinePlayer:${username}`).digest();
-  bytes[6] = (bytes[6] & 0x0f) | 0x30;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  const hex = bytes.toString('hex');
-  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
 }
 
 function findJava(root) {
@@ -452,14 +444,7 @@ ipcMain.handle('aether:launch', async (_event, settings = {}) => {
   const javaPath = await resolveJava(settings.javaPath);
   const authorization = accountType === 'microsoft'
     ? await getMicrosoftAuthorization()
-    : {
-        access_token: '0',
-        client_token: '0',
-        uuid: offlineUuid(username),
-        name: username,
-        user_properties: '{}',
-        meta: { type: 'mojang', demo: false }
-      };
+    : await Authenticator.getAuth(username);
   const launcher = new Client();
   launcher.on('debug', message => sendLog(message));
   launcher.on('data', message => sendLog(message));
