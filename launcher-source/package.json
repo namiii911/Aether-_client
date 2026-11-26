@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "minecraft-launcher-core": "3.18.2",
-    "msmc": "5.0.5"
+    "msmc": "5.0.5",
+    "@supabase/supabase-js": "2.119.2"
   },
   "build": {
     "appId": "com.aether.client",
