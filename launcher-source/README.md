@@ -31,3 +31,11 @@ The canonical build is `.github/workflows/build-aether-windows.yml`. It builds t
 ## Fabric installation notes
 
 AETHER downloads official Fabric installer metadata from `meta.fabricmc.net`, validates the installer host, then runs the installer in client mode for Minecraft 1.21.11. Java 21 is installed automatically on Windows x64 if no valid custom Java executable is selected.
+
+
+## AETHER Auto Booster
+
+- Optional Auto Booster control in the launcher; enabled by default.
+- Before each game launch, applies a performance-oriented Minecraft video profile (Fast graphics, 8-chunk render distance, 5-chunk simulation distance, reduced particles/clouds, no entity shadows, no VSync, and a 260 FPS cap).
+- Backs up the original `options.txt` once. Turning Auto Booster off restores that backup; if AETHER created the options file, it removes that generated file instead.
+- This is a settings optimizer, not an overclock or FPS guarantee. Actual results depend on the PC, GPU, drivers, mods, shaders, and world.
