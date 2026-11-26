@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://namiii911.github.io/Aether-_client/sitemap.xml
