@@ -5,6 +5,8 @@ const crypto = require('crypto');
 const { spawn } = require('child_process');
 const { Client } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
+const { createClient } = require('@supabase/supabase-js');
+const socialConfig = require('./social-config');
 
 const MINECRAFT_VERSION = '1.21.11';
 const JAVA_MAJOR = 21;
@@ -198,6 +200,120 @@ async function installFabric(root, javaPath) {
   return installed;
 }
 
+
+const socialSessionPath = () => path.join(app.getPath('userData'), 'aether-social-session.dat');
+const encryptedSocialStorage = {
+  async getItem() {
+    const file = socialSessionPath();
+    if (!fs.existsSync(file) || !safeStorage.isEncryptionAvailable()) return null;
+    return safeStorage.decryptString(fs.readFileSync(file));
+  },
+  async setItem(_key, value) {
+    if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure storage is unavailable; AETHER cannot save your social account safely.');
+    fs.writeFileSync(socialSessionPath(), safeStorage.encryptString(value));
+  },
+  async removeItem() {
+    fs.rmSync(socialSessionPath(), { force: true });
+  }
+};
+const socialClient = createClient(socialConfig.supabaseUrl, socialConfig.supabasePublishableKey, {
+  auth: {
+    storage: encryptedSocialStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false
+  }
+});
+
+async function requireSocialUser() {
+  const { data, error } = await socialClient.auth.getSession();
+  if (error) throw error;
+  if (!data.session?.user) throw new Error('Sign in to your AETHER account to use Friends.');
+  return data.session.user;
+}
+
+async function getSocialProfile(userId) {
+  const { data, error } = await socialClient
+    .from('aether_social_profiles')
+    .select('user_id,username,display_name,avatar_url')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Your AETHER profile is still being created. Please retry in a moment.');
+  return data;
+}
+
+async function socialSignIn(email, password, createAccount = false) {
+  const result = createAccount
+    ? await socialClient.auth.signUp({ email, password })
+    : await socialClient.auth.signInWithPassword({ email, password });
+  if (result.error) throw result.error;
+  if (!result.data.session) {
+    return { ok: true, confirmationRequired: true, message: 'Check your email to confirm your AETHER account, then sign in.' };
+  }
+  const profile = await getSocialProfile(result.data.user.id);
+  await socialClient.from('aether_presence').upsert({
+    user_id: result.data.user.id,
+    status: 'online',
+    last_seen_at: new Date().toISOString()
+  });
+  return { ok: true, profile };
+}
+
+async function listSocialData() {
+  const user = await requireSocialUser();
+  const { data: relations, error } = await socialClient
+    .from('aether_friendships')
+    .select('id,user_a,user_b,requested_by,status,created_at')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  const ids = [...new Set((relations || []).flatMap(item => [item.user_a, item.user_b]).filter(id => id !== user.id))];
+  const profilesResult = ids.length
+    ? await socialClient.from('aether_social_profiles').select('user_id,username,display_name,avatar_url').in('user_id', ids)
+    : { data: [], error: null };
+  if (profilesResult.error) throw profilesResult.error;
+  const presenceResult = ids.length
+    ? await socialClient.from('aether_presence').select('user_id,status,last_seen_at').in('user_id', ids)
+    : { data: [], error: null };
+  if (presenceResult.error) throw presenceResult.error;
+  const profiles = new Map((profilesResult.data || []).map(item => [item.user_id, item]));
+  const presence = new Map((presenceResult.data || []).map(item => [item.user_id, item]));
+  const now = Date.now();
+  const decorate = relation => {
+    const otherId = relation.user_a === user.id ? relation.user_b : relation.user_a;
+    const profile = profiles.get(otherId) || { user_id: otherId, username: 'unknown', display_name: 'AETHER Player' };
+    const seen = presence.get(otherId);
+    const online = !!seen && seen.status === 'online' && now - new Date(seen.last_seen_at).getTime() < 60000;
+    return { ...relation, profile, online, lastSeen: seen?.last_seen_at || null };
+  };
+  return {
+    profile: await getSocialProfile(user.id),
+    friends: (relations || []).filter(item => item.status === 'accepted').map(decorate),
+    incoming: (relations || []).filter(item => item.status === 'pending' && item.requested_by !== user.id).map(decorate),
+    outgoing: (relations || []).filter(item => item.status === 'pending' && item.requested_by === user.id).map(decorate)
+  };
+}
+
+async function sendSocialRequest(username) {
+  const user = await requireSocialUser();
+  const term = String(username || '').trim().toLowerCase().replace(/^@/, '');
+  if (!/^[a-z0-9_]{3,16}$/.test(term)) throw new Error('Enter a valid AETHER username (3–16 letters, numbers or underscores).');
+  const { data: target, error } = await socialClient.from('aether_social_profiles')
+    .select('user_id,username').eq('username', term).maybeSingle();
+  if (error) throw error;
+  if (!target) throw new Error('No AETHER player found with that username.');
+  if (target.user_id === user.id) throw new Error('You cannot add yourself as a friend.');
+  const [userA, userB] = [user.id, target.user_id].sort();
+  const { error: insertError } = await socialClient.from('aether_friendships').insert({
+    user_a: userA, user_b: userB, requested_by: user.id, status: 'pending'
+  });
+  if (insertError) {
+    if (insertError.code === '23505') throw new Error('A friend request or friendship already exists.');
+    throw insertError;
+  }
+  return { ok: true, username: target.username };
+}
+
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
@@ -229,6 +345,49 @@ ipcMain.handle('aether:logout-microsoft', async () => {
 });
 
 ipcMain.handle('aether:account-status', async () => ({ signedIn: fs.existsSync(microsoftTokenPath()) }));
+
+ipcMain.handle('aether:social-signup', async (_event, data = {}) => socialSignIn(data.email, data.password, true));
+ipcMain.handle('aether:social-login', async (_event, data = {}) => socialSignIn(data.email, data.password, false));
+ipcMain.handle('aether:social-logout', async () => {
+  const { data } = await socialClient.auth.getSession();
+  const userId = data.session?.user?.id;
+  if (userId) await socialClient.from('aether_presence').upsert({ user_id: userId, status: 'offline', last_seen_at: new Date().toISOString() });
+  await socialClient.auth.signOut();
+  return { ok: true };
+});
+ipcMain.handle('aether:social-state', async () => listSocialData());
+ipcMain.handle('aether:social-search', async (_event, username) => {
+  const user = await requireSocialUser();
+  const term = String(username || '').trim().toLowerCase().replace(/^@/, '');
+  if (term.length < 3) throw new Error('Enter at least 3 characters to search.');
+  const { data, error } = await socialClient.from('aether_social_profiles')
+    .select('user_id,username,display_name,avatar_url').ilike('username', `%${term}%`).neq('user_id', user.id).limit(10);
+  if (error) throw error;
+  return data || [];
+});
+ipcMain.handle('aether:social-request', async (_event, username) => sendSocialRequest(username));
+ipcMain.handle('aether:social-respond', async (_event, data = {}) => {
+  await requireSocialUser();
+  if (!['accepted','declined'].includes(data.status)) throw new Error('Invalid friend request action.');
+  const { error } = await socialClient.from('aether_friendships')
+    .update({ status: data.status, updated_at: new Date().toISOString() }).eq('id', data.id).eq('status', 'pending');
+  if (error) throw error;
+  return { ok: true };
+});
+ipcMain.handle('aether:social-remove', async (_event, id) => {
+  await requireSocialUser();
+  const { error } = await socialClient.from('aether_friendships').delete().eq('id', id);
+  if (error) throw error;
+  return { ok: true };
+});
+ipcMain.handle('aether:social-heartbeat', async () => {
+  const user = await requireSocialUser();
+  const { error } = await socialClient.from('aether_presence').upsert({
+    user_id: user.id, status: 'online', last_seen_at: new Date().toISOString()
+  });
+  if (error) throw error;
+  return { ok: true };
+});
 
 ipcMain.handle('aether:install-fabric', async (_event, settings = {}) => {
   const root = settings.gameDir ? path.resolve(settings.gameDir) : path.join(app.getPath('appData'), '.minecraft');
