@@ -264,11 +264,12 @@ async function socialSignIn(email, password, createAccount = false) {
     return { ok: true, confirmationRequired: true, message: 'Check your email to confirm your AETHER account, then sign in.' };
   }
   const profile = await getSocialProfile(result.data.user.id);
-  await socialClient.from('aether_presence').upsert({
+  const { error: presenceError } = await socialClient.from('aether_presence').upsert({
     user_id: result.data.user.id,
     status: 'online',
     last_seen_at: new Date().toISOString()
   });
+  if (presenceError) throw presenceError;
   startSocialRealtime();
   return { ok: true, profile };
 }
@@ -318,6 +319,14 @@ async function sendSocialRequest(username) {
   if (!target) throw new Error('No AETHER player found with that username.');
   if (target.user_id === user.id) throw new Error('You cannot add yourself as a friend.');
   const [userA, userB] = [user.id, target.user_id].sort();
+  const { data: existing, error: existingError } = await socialClient.from('aether_friendships')
+    .select('id,status').eq('user_a', userA).eq('user_b', userB).maybeSingle();
+  if (existingError) throw existingError;
+  if (existing && existing.status !== 'declined') throw new Error('A friend request or friendship already exists.');
+  if (existing?.status === 'declined') {
+    const { error: deleteError } = await socialClient.from('aether_friendships').delete().eq('id', existing.id);
+    if (deleteError) throw deleteError;
+  }
   const { error: insertError } = await socialClient.from('aether_friendships').insert({
     user_a: userA, user_b: userB, requested_by: user.id, status: 'pending'
   });
