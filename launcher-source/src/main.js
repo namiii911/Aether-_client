@@ -52,6 +52,14 @@ function runProcess(command, args, options = {}) {
   });
 }
 
+function offlineUuid(username) {
+  const bytes = crypto.createHash('md5').update(`OfflinePlayer:${username}`).digest();
+  bytes[6] = (bytes[6] & 0x0f) | 0x30;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = bytes.toString('hex');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+
 function findJava(root) {
   if (!fs.existsSync(root)) return null;
   for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
@@ -212,10 +220,10 @@ ipcMain.handle('aether:launch', async (_event, settings = {}) => {
     authorization: {
       access_token: '0',
       client_token: '0',
-      uuid: '00000000-0000-0000-0000-000000000000',
+      uuid: offlineUuid(username),
       name: username,
       user_properties: '{}',
-      meta: { type: 'mojang', demo: true }
+      meta: { type: 'mojang', demo: false }
     },
     root,
     javaPath,
