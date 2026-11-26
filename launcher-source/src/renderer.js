@@ -110,6 +110,8 @@ async function refreshSocial(){
     });
   }catch(error){socialMessage(error.message,true)}
 }
+window.aether.onSocialRefresh(()=>refreshSocial());
+refreshSocial();
 socialLogin.addEventListener('click',async()=>{
   socialLogin.disabled=true;
   try{const result=await window.aether.socialLogin({email:socialEmail.value.trim(),password:socialPassword.value});if(result.confirmationRequired){socialMessage(result.message);return}socialMessage('Welcome to AETHER, @'+result.profile.username);await refreshSocial()}
