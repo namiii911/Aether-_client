@@ -23,6 +23,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate launcher JavaScript
+        run: npm run check
       - name: Install launcher dependencies
         run: npm install --no-audit --no-fund
       - name: Package Windows x64 launcher
