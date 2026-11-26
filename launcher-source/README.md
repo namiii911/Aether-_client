@@ -4,7 +4,7 @@ This folder contains the Electron desktop launcher source for AETHER CLIENT v1.3
 
 ## Build on Windows
 
-1. Install Node.js 22 LTS.
+1. Install Node.js 22 LTS or newer.
 2. Open a terminal in this folder.
 3. Run `npm install`.
 4. Run `npm start` to open the launcher.
@@ -26,7 +26,7 @@ The canonical build is `.github/workflows/build-aether-windows.yml`. It builds t
 - AETHER Network: email/password AETHER accounts, editable public player profiles, friend requests, accept/decline/remove actions, and friend-only online presence are implemented against the connected Supabase project. Actual two-account end-to-end testing is still required.
 - End-to-end gameplay testing: NOT yet verified on a real Windows PC.
 
-**Important:** Do not advertise this build as a complete production launcher until Microsoft authentication, friends/presence, and end-to-end launch testing are implemented. Microsoft authentication uses the MSMC library's built-in Minecraft Launcher OAuth client and validates Xbox Live, XSTS, Minecraft profile and Java entitlement before launch.
+**Testing limitation:** CI can validate JavaScript and package the Windows installer, but it cannot verify the live Microsoft sign-in window, Minecraft ownership, game launch, or two-user friend flows. Those require a real Windows PC and two AETHER accounts. Microsoft sign-in uses MSMC's built-in Minecraft Launcher OAuth client and validates Minecraft Java entitlement before launch.
 
 ## Fabric installation notes
 
