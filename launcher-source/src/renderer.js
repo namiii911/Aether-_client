@@ -13,6 +13,7 @@ function settings(){return {
   username:document.getElementById('username').value,
   profile:document.getElementById('profile').value,
   ram:document.getElementById('ram').value,
+  autoBoost:document.getElementById('autoBoost').value === 'on',
   gameDir:document.getElementById('gameDir').value,
   javaPath:document.getElementById('javaPath').value
 }}
