@@ -165,6 +165,64 @@ async function resolveJava(customPath) {
   return finalJava;
 }
 
+function applyAutoBooster(root, enabled) {
+  const optionsPath = path.join(root, 'options.txt');
+  const backupPath = path.join(root, '.aether-options-original.txt');
+  const createdMarker = path.join(root, '.aether-auto-options-created');
+
+  if (!enabled) {
+    if (fs.existsSync(backupPath)) {
+      fs.copyFileSync(backupPath, optionsPath);
+      fs.rmSync(backupPath, { force: true });
+      fs.rmSync(createdMarker, { force: true });
+      sendLog('Auto Booster OFF: original Minecraft video settings restored.');
+      return { enabled: false, restored: true };
+    }
+    if (fs.existsSync(createdMarker)) {
+      fs.rmSync(optionsPath, { force: true });
+      fs.rmSync(createdMarker, { force: true });
+      sendLog('Auto Booster OFF: AETHER-generated video settings removed.');
+      return { enabled: false, restored: true };
+    }
+    sendLog('Auto Booster OFF: your existing video settings were left unchanged.');
+    return { enabled: false, restored: false };
+  }
+
+  if (fs.existsSync(optionsPath) && !fs.existsSync(backupPath)) {
+    fs.copyFileSync(optionsPath, backupPath);
+    sendLog('Auto Booster: saved a backup of your original video settings.');
+  } else if (!fs.existsSync(optionsPath) && !fs.existsSync(backupPath)) {
+    fs.writeFileSync(createdMarker, 'AETHER created options.txt for Auto Booster.\n', 'utf8');
+  }
+
+  const current = fs.existsSync(optionsPath) ? fs.readFileSync(optionsPath, 'utf8') : '';
+  const values = new Map();
+  for (const line of current.split(/\r?\n/)) {
+    const separator = line.indexOf(':');
+    if (separator > 0) values.set(line.slice(0, separator), line.slice(separator + 1));
+  }
+
+  const performanceSettings = {
+    graphics: '0',
+    renderDistance: '8',
+    simulationDistance: '5',
+    entityDistanceScaling: '0.75',
+    particles: '1',
+    clouds: '1',
+    entityShadows: 'false',
+    biomeBlendRadius: '0',
+    mipmapLevels: '0',
+    enableVsync: 'false',
+    maxFps: '260',
+    ao: '0'
+  };
+  for (const [key, value] of Object.entries(performanceSettings)) values.set(key, value);
+
+  fs.writeFileSync(optionsPath, [...values.entries()].map(([key, value]) => key + ':' + value).join('\n') + '\n', 'utf8');
+  sendLog('AETHER Auto Booster applied: performance-focused video settings are ready.');
+  return { enabled: true, settings: Object.keys(performanceSettings).length };
+}
+
 async function installFabric(root, javaPath) {
   sendLog('Getting the official Fabric installer...');
   const versionsResponse = await fetch('https://meta.fabricmc.net/v2/versions/installer');
@@ -449,6 +507,7 @@ ipcMain.handle('aether:launch', async (_event, settings = {}) => {
   if (![2, 4, 6, 8, 12, 16].includes(ram)) throw new Error('Choose a supported RAM limit.');
   const root = settings.gameDir ? path.resolve(settings.gameDir) : path.join(app.getPath('appData'), '.minecraft');
   fs.mkdirSync(root, { recursive: true });
+  applyAutoBooster(root, settings.autoBoost !== false);
   sendLog('Preparing Java 21...');
   const javaPath = await resolveJava(settings.javaPath);
   const authorization = accountType === 'microsoft'
