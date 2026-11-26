@@ -26,7 +26,7 @@ button.secondary{background:#102b43;border:1px solid #26729b}button:disabled{opa
 <section class="panel"><h2>Launch Minecraft</h2>
 <div class="row">
 <div class="field"><label>ACCOUNT TYPE</label><select id="accountType"><option value="local">Local / Offline Account</option><option value="microsoft">Microsoft Premium Account (coming soon)</option></select></div>
-<div class="field"><label>PLAYER NAME (LOCAL)</label><input id="username" maxlength="16" value="AetherPlayer" placeholder="Minecraft username"></div>
+<div class="field" id="localNameField"><label>PLAYER NAME (LOCAL)</label><input id="username" maxlength="16" value="AetherPlayer" placeholder="Minecraft username"></div>
 </div>
 <div class="row" style="margin-top:18px">
 <div class="field"><label>GAME PROFILE</label><select id="profile"><option value="fabric">Fabric · 1.21.11</option><option value="vanilla">Vanilla · 1.21.11</option></select></div>
@@ -34,7 +34,8 @@ button.secondary{background:#102b43;border:1px solid #26729b}button:disabled{opa
 </div>
 <div class="field" style="margin-top:18px"><label>GAME DIRECTORY (OPTIONAL)</label><input id="gameDir" placeholder="Default Minecraft folder"></div>
 <div class="field" style="margin-top:18px"><label>CUSTOM JAVA EXECUTABLE (OPTIONAL)</label><input id="javaPath" placeholder="Leave blank to install/use Java 21 automatically"></div>
+<div class="actions"><button class="secondary" id="loginMicrosoft">SIGN IN WITH MICROSOFT</button><button class="secondary" id="logoutMicrosoft">SIGN OUT</button></div><div class="notice" id="accountStatus" style="display:block">No Microsoft account connected.</div>
 <div class="actions"><button class="secondary" id="installFabric">⬇ INSTALL FABRIC</button><button id="play">▶ PLAY MINECRAFT</button></div>
-<div class="notice">Java 21 is downloaded automatically on first use for Windows 64-bit. You can provide your own java.exe above. Local mode is offline-only and cannot join online-mode servers. Microsoft sign-in is not implemented yet.</div>
+<div class="notice">Java 21 is downloaded automatically on first use for Windows 64-bit. You can provide your own java.exe above. Local mode is offline-only and cannot join online-mode servers. Microsoft sign-in checks Minecraft Java ownership and stores its refresh token encrypted with Windows secure storage.</div>
 <span id="status">READY</span><pre id="log">AETHER launcher initialized.</pre>
 </section></main></div><script src="renderer.js"></script></body></html>
