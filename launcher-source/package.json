@@ -14,7 +14,8 @@
     "electron-builder": "^26.0.12"
   },
   "dependencies": {
-    "minecraft-launcher-core": "3.18.2"
+    "minecraft-launcher-core": "3.18.2",
+    "msmc": "5.0.5"
   },
   "build": {
     "appId": "com.aether.client",
