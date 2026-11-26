@@ -210,6 +210,7 @@ const encryptedSocialStorage = {
   },
   async setItem(_key, value) {
     if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure storage is unavailable; AETHER cannot save your social account safely.');
+    fs.mkdirSync(path.dirname(socialSessionPath()), { recursive: true });
     fs.writeFileSync(socialSessionPath(), safeStorage.encryptString(value));
   },
   async removeItem() {
@@ -359,7 +360,7 @@ ipcMain.handle('aether:social-state', async () => listSocialData());
 ipcMain.handle('aether:social-search', async (_event, username) => {
   const user = await requireSocialUser();
   const term = String(username || '').trim().toLowerCase().replace(/^@/, '');
-  if (term.length < 3) throw new Error('Enter at least 3 characters to search.');
+  if (!/^[a-z0-9_]{3,16}$/.test(term)) throw new Error('Enter a valid AETHER username (3–16 letters, numbers or underscores).');
   const { data, error } = await socialClient.from('aether_social_profiles')
     .select('user_id,username,display_name,avatar_url').ilike('username', `%${term}%`).neq('user_id', user.id).limit(10);
   if (error) throw error;
@@ -369,16 +370,31 @@ ipcMain.handle('aether:social-request', async (_event, username) => sendSocialRe
 ipcMain.handle('aether:social-respond', async (_event, data = {}) => {
   await requireSocialUser();
   if (!['accepted','declined'].includes(data.status)) throw new Error('Invalid friend request action.');
-  const { error } = await socialClient.from('aether_friendships')
-    .update({ status: data.status, updated_at: new Date().toISOString() }).eq('id', data.id).eq('status', 'pending');
+  const { data: updated, error } = await socialClient.from('aether_friendships')
+    .update({ status: data.status, updated_at: new Date().toISOString() }).eq('id', data.id).eq('status', 'pending').select('id').maybeSingle();
   if (error) throw error;
+  if (!updated) throw new Error('This friend request is no longer available. Refresh the list and try again.');
   return { ok: true };
 });
 ipcMain.handle('aether:social-remove', async (_event, id) => {
   await requireSocialUser();
-  const { error } = await socialClient.from('aether_friendships').delete().eq('id', id);
+  const { data: removed, error } = await socialClient.from('aether_friendships').delete().eq('id', id).select('id').maybeSingle();
   if (error) throw error;
+  if (!removed) throw new Error('Friend relationship was not found. Refresh the list and try again.');
   return { ok: true };
+});
+
+ipcMain.handle('aether:social-profile-update', async (_event, data = {}) => {
+  const user = await requireSocialUser();
+  const username = String(data.username || '').trim().toLowerCase().replace(/^@/, '');
+  const display_name = String(data.displayName || '').trim();
+  if (!/^[a-z0-9_]{3,16}$/.test(username)) throw new Error('Username must be 3–16 lowercase letters, numbers or underscores.');
+  if (display_name.length < 1 || display_name.length > 32) throw new Error('Display name must be 1–32 characters.');
+  const { data: profile, error } = await socialClient.from('aether_social_profiles')
+    .update({ username, display_name }).eq('user_id', user.id)
+    .select('user_id,username,display_name,avatar_url').single();
+  if (error) throw error;
+  return profile;
 });
 ipcMain.handle('aether:social-heartbeat', async () => {
   const user = await requireSocialUser();
