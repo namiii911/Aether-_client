@@ -8,14 +8,15 @@ function settings(){return {
   username:document.getElementById('username').value,
   profile:document.getElementById('profile').value,
   ram:document.getElementById('ram').value,
-  gameDir:document.getElementById('gameDir').value
+  gameDir:document.getElementById('gameDir').value,
+  javaPath:document.getElementById('javaPath').value
 }}
 window.aether.onLog(add);
 window.aether.onProgress(value=>{if(value&&value.status)status.textContent=value.status});
 installFabric.addEventListener('click',async()=>{
-  installFabric.disabled=true;play.disabled=true;status.textContent='INSTALLING FABRIC';
+  installFabric.disabled=true;play.disabled=true;status.textContent='PREPARING JAVA / FABRIC';
   try{
-    const result=await window.aether.installFabric({gameDir:settings().gameDir});
+    const result=await window.aether.installFabric({gameDir:settings().gameDir,javaPath:settings().javaPath});
     status.textContent='FABRIC READY';add('Installed Fabric profile: '+result.profile);
   }catch(error){status.textContent='ERROR';add('ERROR: '+error.message);alert(error.message)}
   finally{installFabric.disabled=false;play.disabled=false}
