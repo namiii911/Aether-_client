@@ -313,7 +313,7 @@ async function getSocialProfile(userId) {
 }
 
 async function socialSignIn(email, password, createAccount = false) {
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(email || '').trim())) throw new Error('Enter a valid email address.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim())) throw new Error('Enter a valid email address.');
   if (String(password || '').length < 8) throw new Error('Password must be at least 8 characters.');
   const result = createAccount
     ? await socialClient.auth.signUp({ email, password })
