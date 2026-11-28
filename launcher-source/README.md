@@ -39,3 +39,11 @@ GLORY downloads official Fabric installer metadata from `meta.fabricmc.net`, val
 - Before each game launch, applies a performance-oriented Minecraft video profile (Fast graphics, 8-chunk render distance, 5-chunk simulation distance, reduced particles/clouds, no entity shadows, no VSync, and a 260 FPS cap).
 - Backs up the original `options.txt` once. Turning Auto Booster off restores that backup; if GLORY created the options file, it removes that generated file instead.
 - This is a settings optimizer, not an overclock or FPS guarantee. Actual results depend on the PC, GPU, drivers, mods, shaders, and world.
+
+
+## Modrinth content library (v1.3.8)
+
+- Downloads tab searches Modrinth for Minecraft Java 1.21.11 mods, resource packs and shaders.
+- Mods are filtered to Fabric-compatible releases. Resource packs and shaders are filtered to the Minecraft version.
+- The selected compatible release is downloaded from the official Modrinth CDN and installed into the active game directory's `mods`, `resourcepacks`, or `shaderpacks` folder.
+- The user chooses each project and clicks its INSTALL button. No bundled third-party mods or packs are silently installed.
