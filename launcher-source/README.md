@@ -1,6 +1,6 @@
 # GLORY CLIENT Launcher (Windows)
 
-This folder contains the Electron desktop launcher source for GLORY CLIENT v1.3.6.
+This folder contains the Electron desktop launcher source for GLORY CLIENT v1.3.8.
 
 ## Build on Windows
 
