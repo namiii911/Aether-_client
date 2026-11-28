@@ -396,6 +396,80 @@ async function sendSocialRequest(username) {
   return { ok: true, username: target.username };
 }
 
+
+async function modrinthJson(url) {
+  const response = await fetch(url, { headers: { 'User-Agent': 'GLORY-CLIENT/1.3.8 (launcher)' } });
+  if (!response.ok) throw new Error(`Modrinth request failed (${response.status}). Please try again.`);
+  return response.json();
+}
+function libraryType(value) {
+  if (!['mod', 'resourcepack', 'shader'].includes(value)) throw new Error('Choose Mods, Resource Packs or Shaders.');
+  return value;
+}
+function libraryRoot(gameDir) {
+  const root = gameDir ? path.resolve(String(gameDir)) : path.join(app.getPath('appData'), '.minecraft');
+  fs.mkdirSync(root, { recursive: true });
+  return root;
+}
+ipcMain.handle('aether:library-search', async (_event, options = {}) => {
+  const type = libraryType(options.type);
+  const query = String(options.query || '').trim().slice(0, 100);
+  if (query.length < 2) throw new Error('Enter at least 2 characters to search Modrinth.');
+  const facets = [['project_type:' + type], ['versions:' + MINECRAFT_VERSION]];
+  if (type === 'mod') facets.push(['categories:fabric']);
+  const params = new URLSearchParams({ query, facets: JSON.stringify(facets), limit: '24', index: 'relevance' });
+  sendLog('Searching Modrinth ' + (type === 'mod' ? 'mods' : type === 'resourcepack' ? 'resource packs' : 'shaders') + '...');
+  const data = await modrinthJson('https://api.modrinth.com/v2/search?' + params.toString());
+  return (data.hits || []).map(item => ({
+    projectId: item.project_id,
+    slug: item.slug,
+    title: item.title,
+    description: item.description,
+    author: item.author,
+    downloads: item.downloads,
+    iconUrl: item.icon_url || null,
+    categories: item.categories || [],
+    projectType: item.project_type
+  }));
+});
+ipcMain.handle('aether:library-install', async (_event, options = {}) => {
+  const type = libraryType(options.type);
+  const projectId = String(options.projectId || '');
+  if (!/^[A-Za-z0-9_-]{3,64}$/.test(projectId)) throw new Error('Invalid Modrinth project ID.');
+  const root = libraryRoot(options.gameDir);
+  const params = new URLSearchParams({ game_versions: JSON.stringify([MINECRAFT_VERSION]) });
+  if (type === 'mod') params.set('loaders', JSON.stringify(['fabric']));
+  sendLog('Finding a compatible ' + type + ' version...');
+  const versions = await modrinthJson('https://api.modrinth.com/v2/project/' + encodeURIComponent(projectId) + '/version?' + params.toString());
+  const compatible = (versions || []).filter(version =>
+    Array.isArray(version.game_versions) && version.game_versions.includes(MINECRAFT_VERSION) &&
+    (type !== 'mod' || (Array.isArray(version.loaders) && version.loaders.includes('fabric')))
+  ).sort((a, b) => new Date(b.date_published) - new Date(a.date_published));
+  const version = compatible[0];
+  if (!version) throw new Error('No compatible Minecraft ' + MINECRAFT_VERSION + (type === 'mod' ? ' Fabric' : '') + ' release was found for this project.');
+  const file = version.files?.find(item => item.primary) || version.files?.[0];
+  if (!file?.url || !file?.filename) throw new Error('Modrinth did not provide a downloadable file for this version.');
+  const parsed = new URL(file.url);
+  if (parsed.protocol !== 'https:' || !['cdn.modrinth.com', 'api.modrinth.com'].includes(parsed.hostname)) {
+    throw new Error('Download host was not a trusted Modrinth file host.');
+  }
+  const folder = type === 'mod' ? 'mods' : type === 'resourcepack' ? 'resourcepacks' : 'shaderpacks';
+  const targetDir = path.join(root, folder);
+  fs.mkdirSync(targetDir, { recursive: true });
+  const filename = path.basename(file.filename).replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+  const destination = path.join(targetDir, filename);
+  if (!destination.startsWith(targetDir + path.sep)) throw new Error('Invalid download filename.');
+  if (fs.existsSync(destination)) return { ok: true, alreadyInstalled: true, filename, folder };
+  sendLog('Downloading ' + filename + ' from Modrinth...');
+  const response = await fetch(parsed.toString(), { headers: { 'User-Agent': 'GLORY-CLIENT/1.3.8 (launcher)' } });
+  if (!response.ok) throw new Error('Download failed (' + response.status + ').');
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (!bytes.length || bytes.length > 1024 * 1024 * 1024) throw new Error('Downloaded file is empty or too large.');
+  fs.writeFileSync(destination, bytes, { flag: 'wx' });
+  sendLog('Installed ' + filename + ' into ' + folder + '/');
+  return { ok: true, filename, folder, version: version.version_number };
+});
+
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
