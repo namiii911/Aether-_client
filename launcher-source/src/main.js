@@ -181,7 +181,7 @@ function applyAutoBooster(root, enabled) {
     if (fs.existsSync(createdMarker)) {
       fs.rmSync(optionsPath, { force: true });
       fs.rmSync(createdMarker, { force: true });
-      sendLog('Auto Booster OFF: AETHER-generated video settings removed.');
+      sendLog('Auto Booster OFF: GLORY-generated video settings removed.');
       return { enabled: false, restored: true };
     }
     sendLog('Auto Booster OFF: your existing video settings were left unchanged.');
@@ -192,7 +192,7 @@ function applyAutoBooster(root, enabled) {
     fs.copyFileSync(optionsPath, backupPath);
     sendLog('Auto Booster: saved a backup of your original video settings.');
   } else if (!fs.existsSync(optionsPath) && !fs.existsSync(backupPath)) {
-    fs.writeFileSync(createdMarker, 'AETHER created options.txt for Auto Booster.\n', 'utf8');
+    fs.writeFileSync(createdMarker, 'GLORY created options.txt for Auto Booster.\n', 'utf8');
   }
 
   const current = fs.existsSync(optionsPath) ? fs.readFileSync(optionsPath, 'utf8') : '';
@@ -219,7 +219,7 @@ function applyAutoBooster(root, enabled) {
   for (const [key, value] of Object.entries(performanceSettings)) values.set(key, value);
 
   fs.writeFileSync(optionsPath, [...values.entries()].map(([key, value]) => key + ':' + value).join('\n') + '\n', 'utf8');
-  sendLog('AETHER Auto Booster applied: performance-focused video settings are ready.');
+  sendLog('GLORY Auto Booster applied: performance-focused video settings are ready.');
   return { enabled: true, settings: Object.keys(performanceSettings).length };
 }
 
@@ -269,7 +269,7 @@ const encryptedSocialStorage = {
     return safeStorage.decryptString(fs.readFileSync(file));
   },
   async setItem(_key, value) {
-    if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure storage is unavailable; AETHER cannot save your social account safely.');
+    if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure storage is unavailable; GLORY cannot save your social account safely.');
     fs.mkdirSync(path.dirname(socialSessionPath()), { recursive: true });
     fs.writeFileSync(socialSessionPath(), safeStorage.encryptString(value));
   },
@@ -297,7 +297,7 @@ function startSocialRealtime() {
 async function requireSocialUser() {
   const { data, error } = await socialClient.auth.getSession();
   if (error) throw error;
-  if (!data.session?.user) throw new Error('Sign in to your AETHER account to use Friends.');
+  if (!data.session?.user) throw new Error('Sign in to your GLORY account to use Friends.');
   return data.session.user;
 }
 
@@ -308,7 +308,7 @@ async function getSocialProfile(userId) {
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
-  if (!data) throw new Error('Your AETHER profile is still being created. Please retry in a moment.');
+  if (!data) throw new Error('Your GLORY profile is still being created. Please retry in a moment.');
   return data;
 }
 
@@ -320,7 +320,7 @@ async function socialSignIn(email, password, createAccount = false) {
     : await socialClient.auth.signInWithPassword({ email, password });
   if (result.error) throw result.error;
   if (!result.data.session) {
-    return { ok: true, confirmationRequired: true, message: 'Check your email to confirm your AETHER account, then sign in.' };
+    return { ok: true, confirmationRequired: true, message: 'Check your email to confirm your GLORY account, then sign in.' };
   }
   const profile = await getSocialProfile(result.data.user.id);
   const { error: presenceError } = await socialClient.from('aether_presence').upsert({
@@ -355,7 +355,7 @@ async function listSocialData() {
   const now = Date.now();
   const decorate = relation => {
     const otherId = relation.user_a === user.id ? relation.user_b : relation.user_a;
-    const profile = profiles.get(otherId) || { user_id: otherId, username: 'unknown', display_name: 'AETHER Player' };
+    const profile = profiles.get(otherId) || { user_id: otherId, username: 'unknown', display_name: 'GLORY Player' };
     const seen = presence.get(otherId);
     const online = !!seen && seen.status === 'online' && now - new Date(seen.last_seen_at).getTime() < 60000;
     return { ...relation, profile, online, lastSeen: seen?.last_seen_at || null };
@@ -371,11 +371,11 @@ async function listSocialData() {
 async function sendSocialRequest(username) {
   const user = await requireSocialUser();
   const term = String(username || '').trim().toLowerCase().replace(/^@/, '');
-  if (!/^[a-z0-9_]{3,16}$/.test(term)) throw new Error('Enter a valid AETHER username (3–16 letters, numbers or underscores).');
+  if (!/^[a-z0-9_]{3,16}$/.test(term)) throw new Error('Enter a valid GLORY username (3–16 letters, numbers or underscores).');
   const { data: target, error } = await socialClient.from('aether_social_profiles')
     .select('user_id,username').eq('username', term).maybeSingle();
   if (error) throw error;
-  if (!target) throw new Error('No AETHER player found with that username.');
+  if (!target) throw new Error('No GLORY player found with that username.');
   if (target.user_id === user.id) throw new Error('You cannot add yourself as a friend.');
   const [userA, userB] = [user.id, target.user_id].sort();
   const { data: existing, error: existingError } = await socialClient.from('aether_friendships')
@@ -402,7 +402,7 @@ app.on('window-all-closed', () => {
 });
 
 ipcMain.handle('aether:login-microsoft', async () => {
-  if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure credential storage is unavailable. AETHER cannot safely save Microsoft credentials on this device.');
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure credential storage is unavailable. GLORY cannot safely save Microsoft credentials on this device.');
   sendLog('Opening Microsoft sign-in...');
   const auth = new Auth('select_account');
   auth.on('load', (_asset, message) => sendLog(message));
@@ -442,7 +442,7 @@ ipcMain.handle('aether:social-state', async () => listSocialData());
 ipcMain.handle('aether:social-search', async (_event, username) => {
   const user = await requireSocialUser();
   const term = String(username || '').trim().toLowerCase().replace(/^@/, '');
-  if (!/^[a-z0-9_]{3,16}$/.test(term)) throw new Error('Enter a valid AETHER username (3–16 letters, numbers or underscores).');
+  if (!/^[a-z0-9_]{3,16}$/.test(term)) throw new Error('Enter a valid GLORY username (3–16 letters, numbers or underscores).');
   const { data, error } = await socialClient.from('aether_social_profiles')
     .select('user_id,username,display_name,avatar_url').ilike('username', `%${term}%`).neq('user_id', user.id).limit(10);
   if (error) throw error;
