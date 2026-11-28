@@ -17,7 +17,7 @@ accountPanel.append(accountRow,accountActions,accountStatusPanel);
 const settingsPanel=makeView('settingsView','Settings');
 settingsPanel.append(settingsBlock);
 const downloadsPanel=makeView('downloadsView','Downloads');
-const downloadsDescription=document.createElement('p');downloadsDescription.className='sub';downloadsDescription.textContent='Install the Minecraft Fabric profile and required launcher files.';downloadsPanel.append(downloadsDescription);
+const downloadsDescription=document.createElement('p');downloadsDescription.className='sub';downloadsDescription.textContent='Install the Fabric profile, then browse and install Mods, Resource Packs and Shaders from Modrinth.';downloadsPanel.append(downloadsDescription);
 
 const libraryHeading=document.createElement('div');
 libraryHeading.className='library-heading';
