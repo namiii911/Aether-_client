@@ -1,17 +1,17 @@
-name: Build AETHER CLIENT for Windows
+name: Build GLORY CLIENT for Windows
 
 on:
   workflow_dispatch:
   push:
     paths:
       - "launcher-source/**"
-      - ".github/workflows/build-aether-windows.yml"
+      - ".github/workflows/build-glory-windows.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: aether-windows-${{ github.ref }}
+  group: glory-windows-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: AETHER-CLIENT-Windows-x64
+          name: GLORY-CLIENT-Windows-x64
           path: launcher-source/dist/*.exe
           if-no-files-found: error
           retention-days: 14
