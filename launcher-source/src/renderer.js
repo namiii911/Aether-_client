@@ -76,7 +76,7 @@ function socialButton(label,handler){
 function socialCard(profile,detail,actions=[]){
   const card=document.createElement('div');card.className='social-item';
   const info=document.createElement('div');
-  const name=document.createElement('div');name.className='social-name';name.textContent=profile.display_name||'AETHER Player';
+  const name=document.createElement('div');name.className='social-name';name.textContent=profile.display_name||'GLORY Player';
   const handle=document.createElement('div');handle.className='social-handle';handle.textContent='@'+(profile.username||'unknown')+(detail?' · '+detail:'');
   info.append(name,handle);card.append(info);
   if(actions.length){const host=document.createElement('div');host.className='social-actions';actions.forEach(action=>host.append(action));card.append(host)}
@@ -115,18 +115,18 @@ window.aether.onSocialRefresh(()=>refreshSocial());
 refreshSocial();
 socialLogin.addEventListener('click',async()=>{
   socialLogin.disabled=true;
-  try{const result=await window.aether.socialLogin({email:socialEmail.value.trim(),password:socialPassword.value});if(result.confirmationRequired){socialMessage(result.message);return}socialMessage('Welcome to AETHER, @'+result.profile.username);await refreshSocial()}
+  try{const result=await window.aether.socialLogin({email:socialEmail.value.trim(),password:socialPassword.value});if(result.confirmationRequired){socialMessage(result.message);return}socialMessage('Welcome to GLORY, @'+result.profile.username);await refreshSocial()}
   catch(error){socialMessage(error.message,true)}
   finally{socialLogin.disabled=false}
 });
 socialSignup.addEventListener('click',async()=>{
   socialSignup.disabled=true;
-  try{const result=await window.aether.socialSignup({email:socialEmail.value.trim(),password:socialPassword.value});if(result.confirmationRequired){socialMessage(result.message);return}socialMessage('AETHER account created: @'+result.profile.username);await refreshSocial()}
+  try{const result=await window.aether.socialSignup({email:socialEmail.value.trim(),password:socialPassword.value});if(result.confirmationRequired){socialMessage(result.message);return}socialMessage('GLORY account created: @'+result.profile.username);await refreshSocial()}
   catch(error){socialMessage(error.message,true)}
   finally{socialSignup.disabled=false}
 });
 socialLogout.addEventListener('click',async()=>{
-  try{await window.aether.socialLogout();socialMessage('Signed out of AETHER Network.');incomingRequests.textContent='Sign in to view requests.';outgoingRequests.replaceChildren();friendsList.textContent='Sign in to view friends.'}
+  try{await window.aether.socialLogout();socialMessage('Signed out of GLORY Network.');incomingRequests.textContent='Sign in to view requests.';outgoingRequests.replaceChildren();friendsList.textContent='Sign in to view friends.'}
   catch(error){socialMessage(error.message,true)}
 });
 socialSearchButton.addEventListener('click',async()=>{
@@ -134,7 +134,7 @@ socialSearchButton.addEventListener('click',async()=>{
   try{
     const results=await window.aether.socialSearch(socialSearch.value);
     if(!results.length){socialResults.textContent='No players found.';return}
-    results.forEach(profile=>socialResults.append(socialCard(profile,'AETHER player',[
+    results.forEach(profile=>socialResults.append(socialCard(profile,'GLORY player',[
       socialButton('ADD FRIEND',async()=>{try{const result=await window.aether.socialRequest(profile.username);socialMessage('Friend request sent to @'+result.username);await refreshSocial()}catch(error){socialMessage(error.message,true)}})
     ])));
   }catch(error){socialMessage(error.message,true)}
