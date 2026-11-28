@@ -38,7 +38,7 @@
           ]
         }
       ],
-      "artifactName": "AETHER-CLIENT-Setup-${version}.${ext}"
+      "artifactName": "GLORY-CLIENT-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
