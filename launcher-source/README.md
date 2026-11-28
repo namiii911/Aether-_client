@@ -1,6 +1,6 @@
 # GLORY CLIENT Launcher (Windows)
 
-This folder contains the Electron desktop launcher source for GLORY CLIENT v1.3.5.
+This folder contains the Electron desktop launcher source for GLORY CLIENT v1.3.6.
 
 ## Build on Windows
 
@@ -12,7 +12,7 @@ This folder contains the Electron desktop launcher source for GLORY CLIENT v1.3.
 
 ## Automated Windows build
 
-The canonical build is `.github/workflows/build-aether-windows.yml`. It builds the NSIS installer on launcher-source changes and uploads the generated `.exe` as a GitHub Actions artifact. The tagged-release workflow at `.github/workflows/release-windows.yml` publishes an installer to GitHub Releases when a `v*` tag is pushed.
+The canonical build is `.github/workflows/build-aether-windows.yml`. It builds the NSIS installer on launcher-source changes and uploads the generated `.exe` as a GitHub Actions artifact. The tagged-release workflow at `.github/workflows/release-windows.yml` publishes an installer to GitHub Releases when the matching successful Windows build artifact is available.
 
 ## Current implementation status
 
