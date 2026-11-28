@@ -1,7 +1,7 @@
 {
   "name": "glory-client-launcher",
   "productName": "GLORY CLIENT",
-  "version": "1.3.7",
+  "version": "1.3.8",
   "description": "GLORY Minecraft Java launcher",
   "main": "src/main.js",
   "scripts": {
