@@ -1,12 +1,57 @@
 const play=document.getElementById('play');
 const installFabric=document.getElementById('installFabric');
 const status=document.getElementById('status');
+const mainContent=document.querySelector('.main');
+const homePanel=document.getElementById('homePanel');
+const friendsPanel=document.getElementById('friendsPanel');
+const accountRow=document.getElementById('accountSection');
+const settingsBlock=document.getElementById('settingsSection');
+const accountStatusPanel=document.getElementById('accountStatus');
+const accountActions=document.getElementById('loginMicrosoft').parentElement;
+const downloadActions=document.getElementById('downloadSection');
+const makeView=(id,title)=>{const section=document.createElement('section');section.id=id;section.className='view';const panel=document.createElement('div');panel.className='panel';const heading=document.createElement('h2');heading.textContent=title;panel.append(heading);section.append(panel);mainContent.append(section);return panel};
+const homePanelOriginalTitle=homePanel.querySelector('h2');
+const homeView=document.createElement('section');homeView.id='homeView';homeView.className='view active';mainContent.append(homeView);homeView.append(homePanel);
+const accountPanel=makeView('accountView','Account');
+accountPanel.append(accountRow,accountActions,accountStatusPanel);
+const settingsPanel=makeView('settingsView','Settings');
+settingsPanel.append(settingsBlock);
+const downloadsPanel=makeView('downloadsView','Downloads');
+const downloadsDescription=document.createElement('p');downloadsDescription.className='sub';downloadsDescription.textContent='Install the Minecraft Fabric profile and required launcher files.';downloadsPanel.append(downloadsDescription);
+const installAction=document.createElement('div');installAction.className='actions';installAction.append(installFabric);downloadsPanel.append(installAction);
+const friendsView=document.createElement('section');friendsView.id='friendsView';friendsView.className='view';mainContent.append(friendsView);friendsView.append(friendsPanel);
+const homeActions=document.createElement('div');homeActions.className='actions';homeActions.append(play);homePanel.insertBefore(homeActions,downloadActions);
+homePanel.querySelectorAll('#accountSection,#settingsSection,#accountStatus,#downloadSection').forEach(node=>node.remove());
+const launcherNotice=homePanel.querySelector('.notice');
+if(launcherNotice) launcherNotice.remove();
+const navLinks=[...document.querySelectorAll('.nav-link')];
+function activateView(id){
+  document.querySelectorAll('.main>.view').forEach(view=>view.classList.toggle('active',view.id===id));
+  navLinks.forEach(link=>link.classList.toggle('active',link.getAttribute('href')==='#'+id));
+  history.replaceState(null,'','#'+id);
+}
+navLinks.forEach(link=>link.addEventListener('click',event=>{event.preventDefault();activateView(link.getAttribute('href').slice(1))}));
+
+
+// Navigation is wired above to switch between independent launcher screens.
 const accountType=document.getElementById('accountType');
 const localNameField=document.getElementById('localNameField');
 const loginMicrosoft=document.getElementById('loginMicrosoft');
 const logoutMicrosoft=document.getElementById('logoutMicrosoft');
 const accountStatus=document.getElementById('accountStatus');
 const log=document.getElementById('log');
+// Restore and persist launcher preferences locally on this device.
+const preferenceIds=['accountType','username','profile','ram','autoBoost','gameDir','javaPath'];
+function restorePreferences(){
+  try{const saved=JSON.parse(localStorage.getItem('glory-launcher-preferences')||'{}');preferenceIds.forEach(id=>{const el=document.getElementById(id);if(el&&saved[id]!==undefined)el.value=saved[id]})}catch(_error){}
+}
+function savePreferences(){
+  const saved={};preferenceIds.forEach(id=>{const el=document.getElementById(id);if(el)saved[id]=el.value});
+  localStorage.setItem('glory-launcher-preferences',JSON.stringify(saved));
+}
+restorePreferences();
+preferenceIds.forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',savePreferences)});
+
 function add(message){log.textContent=(log.textContent+'\n'+message).slice(-6000);log.scrollTop=log.scrollHeight}
 function settings(){return {
   accountType:accountType.value,
@@ -21,7 +66,7 @@ function syncAccountFields(){localNameField.style.display=accountType.value==='l
 accountType.addEventListener('change',syncAccountFields);
 syncAccountFields();
 window.aether.accountStatus().then(result=>{
-  if(result.signedIn){accountType.value='microsoft';accountStatus.textContent='A Microsoft account is saved securely on this PC.';}
+  accountStatus.textContent=result.signedIn?'Microsoft account connected (optional). Local Account remains available.':'No Microsoft account connected. Local Account is ready.';
   syncAccountFields();
 }).catch(error=>add('Account status: '+error.message));
 loginMicrosoft.addEventListener('click',async()=>{
