@@ -18,6 +18,55 @@ const settingsPanel=makeView('settingsView','Settings');
 settingsPanel.append(settingsBlock);
 const downloadsPanel=makeView('downloadsView','Downloads');
 const downloadsDescription=document.createElement('p');downloadsDescription.className='sub';downloadsDescription.textContent='Install the Minecraft Fabric profile and required launcher files.';downloadsPanel.append(downloadsDescription);
+
+const libraryHeading=document.createElement('div');
+libraryHeading.className='library-heading';
+libraryHeading.innerHTML='<div class="eyebrow">GLORY CONTENT LIBRARY</div><h2>Mods, Packs & Shaders</h2><p class="sub">Search Modrinth and install the compatible download straight into your Minecraft folder.</p>';
+downloadsPanel.append(libraryHeading);
+const libraryControls=document.createElement('div');libraryControls.className='library-controls';
+const libraryTypeSelect=document.createElement('select');libraryTypeSelect.id='libraryType';libraryTypeSelect.setAttribute('aria-label','Content type');
+[['mod','Mods · Fabric'],['resourcepack','Resource Packs'],['shader','Shaders']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;libraryTypeSelect.append(option)});
+const libraryQuery=document.createElement('input');libraryQuery.id='libraryQuery';libraryQuery.type='search';libraryQuery.placeholder='Search Modrinth (e.g. Sodium, Faithful, Complementary)';
+const librarySearchButton=document.createElement('button');librarySearchButton.type='button';librarySearchButton.textContent='SEARCH';
+libraryControls.append(libraryTypeSelect,libraryQuery,librarySearchButton);downloadsPanel.append(libraryControls);
+const libraryHint=document.createElement('p');libraryHint.className='notice';libraryHint.textContent='Target: Minecraft Java '+ '1.21.11'+'. Mods are filtered for Fabric. Downloads are installed to your selected game directory: mods / resourcepacks / shaderpacks.';downloadsPanel.append(libraryHint);
+const libraryResults=document.createElement('div');libraryResults.className='library-results';libraryResults.setAttribute('aria-live','polite');libraryResults.textContent='Choose a category, enter a search and press SEARCH to browse compatible Modrinth projects.';downloadsPanel.append(libraryResults);
+function libraryCard(item,type){
+  const card=document.createElement('article');card.className='library-card';
+  const info=document.createElement('div');info.className='library-info';
+  const title=document.createElement('h3');title.textContent=item.title||item.slug;
+  const meta=document.createElement('div');meta.className='library-meta';meta.textContent='by '+(item.author||'Unknown author')+' · '+Number(item.downloads||0).toLocaleString()+' downloads';
+  const desc=document.createElement('p');desc.textContent=item.description||'No description provided.';
+  info.append(title,meta,desc);
+  const install=document.createElement('button');install.type='button';install.className='library-install';install.textContent='INSTALL';
+  install.addEventListener('click',async()=>{
+    install.disabled=true;install.textContent='DOWNLOADING…';
+    try{
+      const result=await window.aether.installLibraryItem({type,projectId:item.projectId,gameDir:settings().gameDir});
+      install.textContent=result.alreadyInstalled?'ALREADY INSTALLED':'INSTALLED ✓';
+      add('Library: '+result.filename+' → '+result.folder+'/');
+      libraryHint.textContent=(result.alreadyInstalled?'Already installed: ':'Installed: ')+result.filename+' in '+result.folder+'/';
+    }catch(error){install.disabled=false;install.textContent='RETRY';libraryHint.textContent='Install failed: '+error.message;add('Library install error: '+error.message)}
+  });
+  card.append(info,install);return card;
+}
+async function searchLibrary(){
+  const query=libraryQuery.value.trim(),type=libraryTypeSelect.value;
+  if(query.length<2){libraryResults.textContent='Enter at least 2 characters to search.';return}
+  librarySearchButton.disabled=true;librarySearchButton.textContent='SEARCHING…';libraryResults.replaceChildren();
+  const loading=document.createElement('p');loading.className='sub';loading.textContent='Searching Modrinth for Minecraft 1.21.11 compatible projects…';libraryResults.append(loading);
+  try{
+    const results=await window.aether.searchLibrary({type,query});
+    libraryResults.replaceChildren();
+    if(!results.length){libraryResults.textContent='No compatible projects found. Try another search term.';return}
+    results.forEach(item=>libraryResults.append(libraryCard(item,type)));
+    libraryHint.textContent=results.length+' results from Modrinth · '+(type==='mod'?'Fabric mods':'Minecraft '+ '1.21.11 '+(type==='shader'?'shaders':'resource packs'))+'. Select INSTALL on the item you want.';
+  }catch(error){libraryResults.textContent='Search failed: '+error.message;add('Library search error: '+error.message)}
+  finally{librarySearchButton.disabled=false;librarySearchButton.textContent='SEARCH'}
+}
+librarySearchButton.addEventListener('click',searchLibrary);
+libraryQuery.addEventListener('keydown',event=>{if(event.key==='Enter')searchLibrary()});
+
 const installAction=document.createElement('div');installAction.className='actions';installAction.append(installFabric);downloadsPanel.append(installAction);
 const friendsView=document.createElement('section');friendsView.id='friendsView';friendsView.className='view';mainContent.append(friendsView);friendsView.append(friendsPanel);
 const homeActions=document.createElement('div');homeActions.className='actions';homeActions.append(play);homePanel.insertBefore(homeActions,downloadActions);
