@@ -1,6 +1,17 @@
 const play=document.getElementById('play');
 const installFabric=document.getElementById('installFabric');
 const status=document.getElementById('status');
+
+// Sidebar navigation: connect every menu item to its launcher section.
+document.querySelectorAll('.nav-link').forEach(link=>{
+  link.addEventListener('click',event=>{
+    const target=document.querySelector(link.getAttribute('href'));
+    if(!target)return;
+    event.preventDefault();
+    target.scrollIntoView({behavior:'smooth',block:'start'});
+    document.querySelectorAll('.nav-link').forEach(item=>item.classList.toggle('active',item===link));
+  });
+});
 const accountType=document.getElementById('accountType');
 const localNameField=document.getElementById('localNameField');
 const loginMicrosoft=document.getElementById('loginMicrosoft');
@@ -21,7 +32,7 @@ function syncAccountFields(){localNameField.style.display=accountType.value==='l
 accountType.addEventListener('change',syncAccountFields);
 syncAccountFields();
 window.aether.accountStatus().then(result=>{
-  if(result.signedIn){accountType.value='microsoft';accountStatus.textContent='A Microsoft account is saved securely on this PC.';}
+  accountStatus.textContent=result.signedIn?'Microsoft account connected (optional). Local Account remains available.':'No Microsoft account connected. Local Account is ready.';
   syncAccountFields();
 }).catch(error=>add('Account status: '+error.message));
 loginMicrosoft.addEventListener('click',async()=>{
