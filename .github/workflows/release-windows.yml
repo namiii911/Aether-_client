@@ -32,7 +32,24 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Check that the build uploaded an installer
+        id: artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id
+            });
+            const found = data.artifacts.some(item =>
+              item.name === 'GLORY-CLIENT-Windows-x64' && !item.expired
+            );
+            core.setOutput('available', found ? 'true' : 'false');
+            if (!found) core.notice('No Windows installer artifact was attached to this successful run; release publishing is safely skipped.');
+
       - name: Download the successful Windows installer artifact
+        if: steps.artifact.outputs.available == 'true'
         uses: actions/download-artifact@v4
         with:
           name: GLORY-CLIENT-Windows-x64
@@ -42,6 +59,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Publish installer to GitHub Releases
+        if: steps.artifact.outputs.available == 'true'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
