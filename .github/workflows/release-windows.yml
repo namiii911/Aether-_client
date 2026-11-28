@@ -1,8 +1,8 @@
-name: Publish AETHER Windows Release
+name: Publish GLORY Windows Release
 
 on:
   workflow_run:
-    workflows: ["Build AETHER CLIENT for Windows"]
+    workflows: ["Build GLORY CLIENT for Windows"]
     types: [completed]
     branches: [main]
 
@@ -35,7 +35,7 @@ jobs:
       - name: Download the successful Windows installer artifact
         uses: actions/download-artifact@v4
         with:
-          name: AETHER-CLIENT-Windows-x64
+          name: GLORY-CLIENT-Windows-x64
           path: release-assets
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
@@ -46,7 +46,7 @@ jobs:
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
           target_commitish: ${{ github.event.workflow_run.head_sha }}
-          name: AETHER CLIENT ${{ steps.meta.outputs.version }}
+          name: GLORY CLIENT ${{ steps.meta.outputs.version }}
           generate_release_notes: true
           make_latest: true
           overwrite_files: true
