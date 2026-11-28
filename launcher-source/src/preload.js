@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('aether', {
   socialHeartbeat: () => ipcRenderer.invoke('aether:social-heartbeat'),
   socialProfileUpdate: data => ipcRenderer.invoke('aether:social-profile-update', data),
   installFabric: settings => ipcRenderer.invoke('aether:install-fabric', settings),
+  searchLibrary: options => ipcRenderer.invoke('aether:library-search', options),
+  installLibraryItem: options => ipcRenderer.invoke('aether:library-install', options),
   onLog: callback => ipcRenderer.on('aether:log', (_event, message) => callback(message)),
   onProgress: callback => ipcRenderer.on('aether:progress', (_event, value) => callback(value)),
   onSocialRefresh: callback => ipcRenderer.on('aether:social-refresh', () => callback())
