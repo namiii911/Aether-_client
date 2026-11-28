@@ -8,7 +8,7 @@
 body{margin:0;background:radial-gradient(circle at 70% 20%,#32185e 0,#130a24 36%,#07050c 75%);color:#eaf6ff;min-height:100vh}
 .shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}.side{padding:30px 22px;border-right:1px solid #452b70;background:#0c0719e8}
 .brand{font-size:25px;font-weight:900;letter-spacing:4px;color:#f2fbff}.brand b{color:#b47aff}
-.nav{margin-top:65px;color:#8daec6;line-height:3.4;font-size:13px;letter-spacing:1px}.nav strong{display:block;color:#5bcaff}
+.nav{margin-top:65px;display:flex;flex-direction:column;gap:8px}.nav-link{display:block;padding:11px 12px;border-radius:8px;color:#8daec6;text-decoration:none;font-size:13px;letter-spacing:1px;transition:.18s}.nav-link:hover,.nav-link.active{color:#5bcaff;background:#14253c;border-left:2px solid #5bcaff}
 .version{position:absolute;bottom:25px;color:#66839c;font-size:11px}.main{padding:42px 6vw}
 .eyebrow{color:#b47aff;letter-spacing:4px;font-size:11px;font-weight:800}.hero{font-size:62px;letter-spacing:-4px;margin:18px 0 4px}.hero span{color:#c18bff}.sub{color:#94b4ce}
 .panel{margin-top:32px;padding:26px;background:#091b2ddd;border:1px solid #5b348b;border-radius:15px;max-width:760px;box-shadow:0 15px 70px #0007}
@@ -21,13 +21,14 @@ button.secondary{background:#102b43;border:1px solid #68408b}button:disabled{opa
 .social-panel{margin-top:24px}.social-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}.social-columns h3{font-size:15px}.social-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}.social-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;background:#061321;border:1px solid #54347c;border-radius:9px}.social-name{font-size:13px;font-weight:700}.social-handle{font-size:11px;color:#8eabc3}.social-online{color:#65e5b2}.social-offline{color:#8eabc3}.social-actions{display:flex;gap:6px;flex-wrap:wrap}.social-actions button{margin:0;padding:8px 10px;font-size:10px}.social-columns .social-item{align-items:flex-start}@media(max-width:700px){.social-columns{grid-template-columns:1fr}.shell{grid-template-columns:1fr}.side{display:none}.main{padding:28px 18px}.hero{font-size:46px}}
 </style></head>
 <body><div class="shell">
-<aside class="side"><div class="brand">✦ GLORY</div><div class="nav"><strong>◈ &nbsp; HOME</strong>♧ &nbsp; FRIENDS<br>⇩ &nbsp; DOWNLOADS<br>⚙ &nbsp; SETTINGS<br>◎ &nbsp; ACCOUNT</div><div class="version">WINDOWS EDITION · v1.3.6<br>MINECRAFT JAVA 1.21.11</div></aside>
+<aside class="side"><div class="brand">✦ GLORY</div><nav class="nav" aria-label="Main navigation"><a class="nav-link active" href="#homePanel">◈ &nbsp; HOME</a><a class="nav-link" href="#friendsPanel">♧ &nbsp; FRIENDS</a><a class="nav-link" href="#downloadSection">⇩ &nbsp; DOWNLOADS</a><a class="nav-link" href="#settingsSection">⚙ &nbsp; SETTINGS</a><a class="nav-link" href="#accountSection">◎ &nbsp; ACCOUNT</a></nav><div class="version">WINDOWS EDITION · v1.3.6<br>MINECRAFT JAVA 1.21.11</div></aside>
 <main class="main"><div class="eyebrow">MINECRAFT JAVA · DEVELOPMENT BUILD</div><div class="hero">PLAY <span>BEYOND.</span></div><div class="sub">Your GLORY launcher. Your world.</div>
-<section class="panel"><h2>Launch Minecraft</h2>
-<div class="row">
+<section class="panel" id="homePanel"><h2>Launch Minecraft</h2>
+<div class="row" id="accountSection">
 <div class="field"><label>ACCOUNT TYPE</label><select id="accountType"><option value="local">Local / Offline Account</option><option value="microsoft">Microsoft Premium Account</option></select></div>
 <div class="field" id="localNameField"><label>PLAYER NAME (LOCAL)</label><input id="username" maxlength="16" value="GloryPlayer" placeholder="Minecraft username"></div>
 </div>
+<div id="settingsSection">
 <div class="row" style="margin-top:18px">
 <div class="field"><label>GAME PROFILE</label><select id="profile"><option value="fabric">Fabric · 1.21.11</option><option value="vanilla">Vanilla · 1.21.11</option></select></div>
 <div class="field"><label>MAXIMUM RAM</label><select id="ram"><option value="2">2 GB</option><option value="4" selected>4 GB</option><option value="6">6 GB</option><option value="8">8 GB</option><option value="12">12 GB</option><option value="16">16 GB</option></select></div>
@@ -38,13 +39,13 @@ button.secondary{background:#102b43;border:1px solid #68408b}button:disabled{opa
 </div>
 <div class="notice">When enabled, GLORY applies performance-focused Minecraft video settings before launch. Your original options.txt is backed up once and restored when you turn Auto Booster off. This tunes in-game settings; it cannot guarantee a specific FPS increase.</div>
 <div class="field" style="margin-top:18px"><label>GAME DIRECTORY (OPTIONAL)</label><input id="gameDir" placeholder="Default Minecraft folder"></div>
-<div class="field" style="margin-top:18px"><label>CUSTOM JAVA EXECUTABLE (OPTIONAL)</label><input id="javaPath" placeholder="Leave blank to install/use Java 21 automatically"></div>
-<div class="actions"><button class="secondary" id="loginMicrosoft">SIGN IN WITH MICROSOFT</button><button class="secondary" id="logoutMicrosoft">SIGN OUT</button></div><div class="notice" id="accountStatus" style="display:block">No Microsoft account connected.</div>
+<div class="field" style="margin-top:18px"><label>CUSTOM JAVA EXECUTABLE (OPTIONAL)</label><input id="javaPath" placeholder="Leave blank to install/use Java 21 automatically"></div></div>
+<div class="actions" id="downloadSection"><button class="secondary" id="loginMicrosoft">SIGN IN WITH MICROSOFT</button><button class="secondary" id="logoutMicrosoft">SIGN OUT</button></div><div class="notice" id="accountStatus" style="display:block">No Microsoft account connected.</div>
 <div class="actions"><button class="secondary" id="installFabric">⬇ INSTALL FABRIC</button><button id="play">▶ PLAY MINECRAFT</button></div>
 <div class="notice">Java 21 is downloaded automatically on first use for Windows 64-bit. You can provide your own java.exe above. Local mode is offline-only and cannot join online-mode servers. Microsoft sign-in checks Minecraft Java ownership and stores its refresh token encrypted with Windows secure storage.</div>
 <span id="status">READY</span><pre id="log">GLORY launcher initialized.</pre>
 </section>
-<section class="panel social-panel"><div class="eyebrow">GLORY NETWORK</div><h2>Friends & Profiles</h2>
+<section class="panel social-panel" id="friendsPanel"><div class="eyebrow">GLORY NETWORK</div><h2>Friends & Profiles</h2>
 <p class="sub">Create an GLORY account to find players, send friend requests and see when friends are online.</p>
 <div class="row" style="margin-top:18px">
 <div class="field"><label>GLORY ACCOUNT EMAIL</label><input id="socialEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
